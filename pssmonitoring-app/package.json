@@ -1,0 +1,27 @@
+{
+  "name": "PSSMonitoring-App",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf build/* && tsc --outDir build",
+    "compile": "tsc --outDir compiled",
+    "debug": "rimraf compiled/* && npm run compile && node --inspect compiled/index.js",
+    "start": "rimraf compiled/* && npm run compile && node compiled/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/systeminformation": "^3.23.0",
+    "firebase": "^5.4.2",
+    "promise": "^8.0.1",
+    "rimraf": "^2.6.2",
+    "systeminformation": "^3.45.5"
+  },
+  "devDependencies": {
+    "@types/node": "^10.9.4",
+    "typescript": "^3.0.3"
+  }
+}
