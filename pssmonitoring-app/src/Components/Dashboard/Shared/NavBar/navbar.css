@@ -1,0 +1,26 @@
+.fa-laptop{
+    font-size: 35px;
+}
+
+.fa-home{
+    font-size: 24px;
+}
+
+.device-status{
+    top: 5px;
+    width: 10px;
+    right: 5px;
+    height: 10px;
+    display: flex;
+    z-index: 1;
+    position: absolute;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    align-items: center;
+    border-radius: 50%;
+    align-content: center;
+    flex-direction: row;
+    justify-content: center;
+    background-color: #00a23e;
+}
