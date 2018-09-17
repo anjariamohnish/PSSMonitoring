@@ -16,6 +16,7 @@
   "dependencies": {
     "@types/systeminformation": "^3.23.0",
     "firebase": "^5.4.2",
+    "node-browser-history": "^1.0.4",
     "promise": "^8.0.1",
     "rimraf": "^2.6.2",
     "systeminformation": "^3.45.5"

@@ -1,12 +1,13 @@
 import firebase from 'firebase';
 import sysInfo, { Systeminformation } from 'systeminformation';
 import Promise from 'promise';
-import { firebaseConfig } from './firebase-config';
+import BrowserHistory from 'node-browser-history';
 import { DEVICES_NODE } from './constants/constant';
 import { initializeFirebase, checkIfExist } from './helper/firebase.helper';
 import { logEvent, getCurrentDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus } from './models';
 import { DeviceStatus } from './enums/devicestatus.enum';
+import { BrowserHistoryInfo } from './models/browserhistory.model';
 
 
 function startUp() {
@@ -159,4 +160,36 @@ function getTimeDifference(time1: string | undefined, time2: string | undefined)
     return timeEnd - timeStart;
 }
 
-startUp();
+// startUp();
+
+
+function hist() {
+    initializeFirebase();
+    let browserHistoryList = new Array<BrowserHistoryInfo>();
+    setInterval(() => {
+        BrowserHistory.getAllHistory().then((historyList: any) => {
+
+            historyList.forEach((entry: any) => {
+
+                console.log(browserHistoryList.indexOf(entry));
+                console.log(entry);
+                console.log(browserHistoryList);
+                if (browserHistoryList.indexOf(entry) === -1) {
+                    //  console.log(browserHistoryList.indexOf(entry))
+                    browserHistoryList.push(entry);
+                    console.log('pushed')
+                } else {
+                    console.log('exist');
+                }
+            });
+        })
+    }, 5000)
+
+
+}
+
+
+function checkIfExist(arr: Array<BrowserHistoryInfo>, entry: BrowserHistoryInfo): boolean {
+    arr.filter(data => data.title === entry.title && data.url === entry.url && data.utc_time === entry.utc_time).;
+}
+hist();
