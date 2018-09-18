@@ -1,4 +1,5 @@
 export class BrowserHistoryInfo {
+    hash!: string;
     title!: string;
     url!: string;
     browser!: string;

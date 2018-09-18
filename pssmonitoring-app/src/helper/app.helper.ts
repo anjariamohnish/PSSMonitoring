@@ -1,7 +1,7 @@
 import { Log } from "../models";
 import firebase from "firebase";
 
-export function getCurrentDateTime(date: boolean = true, time: boolean = true) {
+export function getCurrentDateTime(date: boolean = true, time: boolean = true): string {
     const currentDateTime = new Date();
 
     const currentTime = currentDateTime.getHours() + ":"
@@ -19,6 +19,7 @@ export function getCurrentDateTime(date: boolean = true, time: boolean = true) {
     } else if (!date && time) {
         return currentTime;
     }
+    return '';
 }
 
 

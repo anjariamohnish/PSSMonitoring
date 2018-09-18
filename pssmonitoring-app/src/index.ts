@@ -1,6 +1,8 @@
 import firebase from 'firebase';
 import sysInfo, { Systeminformation } from 'systeminformation';
 import Promise from 'promise';
+import _ from 'lodash';
+import hash from 'object-hash';
 import BrowserHistory from 'node-browser-history';
 import { DEVICES_NODE } from './constants/constant';
 import { initializeFirebase, checkIfExist } from './helper/firebase.helper';
@@ -8,7 +10,6 @@ import { logEvent, getCurrentDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus } from './models';
 import { DeviceStatus } from './enums/devicestatus.enum';
 import { BrowserHistoryInfo } from './models/browserhistory.model';
-
 
 function startUp() {
 
@@ -21,6 +22,7 @@ function startUp() {
             .then(() => {
                 // start liveupdates
                 liveMachineStats();
+                logBrowsersHistory();
                 console.log('already regis starting live');
             })
             .catch((err) => {
@@ -30,6 +32,7 @@ function startUp() {
                         .then(() => {
                             // registration success start liveupdates
                             liveMachineStats();
+                            logBrowsersHistory();
                             logEvent('Registration Success', 'Successfully Registered @' + getCurrentDateTime());
                             console.log('liveupdt');
                         }).catch((err) => {
@@ -160,36 +163,24 @@ function getTimeDifference(time1: string | undefined, time2: string | undefined)
     return timeEnd - timeStart;
 }
 
-// startUp();
-
-
-function hist() {
-    initializeFirebase();
+function logBrowsersHistory() {
+    const DbNodeReference = firebase.auth().currentUser!.displayName + '/BrowserHistory';
     let browserHistoryList = new Array<BrowserHistoryInfo>();
     setInterval(() => {
         BrowserHistory.getAllHistory().then((historyList: any) => {
-
             historyList.forEach((entry: any) => {
-
-                console.log(browserHistoryList.indexOf(entry));
-                console.log(entry);
-                console.log(browserHistoryList);
-                if (browserHistoryList.indexOf(entry) === -1) {
-                    //  console.log(browserHistoryList.indexOf(entry))
+                if (!(_.find(browserHistoryList, { hash: hash(entry) }))) {
+                    entry.hash = hash(entry);
                     browserHistoryList.push(entry);
-                    console.log('pushed')
-                } else {
-                    console.log('exist');
+                    firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(entry, (err: any) => {
+                        if (err) {
+                            logEvent('Database Set Error', err);
+                        }
+                    })
                 }
             });
         })
-    }, 5000)
-
-
+    }, 5000);
 }
 
-
-function checkIfExist(arr: Array<BrowserHistoryInfo>, entry: BrowserHistoryInfo): boolean {
-    arr.filter(data => data.title === entry.title && data.url === entry.url && data.utc_time === entry.utc_time).;
-}
-hist();
+ startUp();

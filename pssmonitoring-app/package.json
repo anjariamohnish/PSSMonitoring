@@ -14,9 +14,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/lodash": "^4.14.116",
+    "@types/object-hash": "^1.2.0",
     "@types/systeminformation": "^3.23.0",
     "firebase": "^5.4.2",
+    "lodash": "^4.17.11",
     "node-browser-history": "^1.0.4",
+    "object-hash": "^1.3.0",
     "promise": "^8.0.1",
     "rimraf": "^2.6.2",
     "systeminformation": "^3.45.5"
