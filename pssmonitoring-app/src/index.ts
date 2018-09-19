@@ -3,13 +3,14 @@ import sysInfo, { Systeminformation } from 'systeminformation';
 import Promise from 'promise';
 import _ from 'lodash';
 import hash from 'object-hash';
+import screenshot from 'screenshot-desktop';
+import { encode } from 'base64-arraybuffer';
 import BrowserHistory from 'node-browser-history';
 import { DEVICES_NODE } from './constants/constant';
 import { initializeFirebase, checkIfExist } from './helper/firebase.helper';
 import { logEvent, getCurrentDateTime } from './helper/app.helper';
-import { Device, DeviceInfo, LiveStatus } from './models';
-import { DeviceStatus } from './enums/devicestatus.enum';
-import { BrowserHistoryInfo } from './models/browserhistory.model';
+import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from './models';
+import { DeviceStatus, ImageStatus } from './enums';
 
 function startUp() {
 
@@ -183,4 +184,25 @@ function logBrowsersHistory() {
     }, 5000);
 }
 
- startUp();
+function takeScreenshot() {
+    screenshot().then((img: any) => {
+        const DbNodeReference = firebase.auth().currentUser!.displayName + '/ScreenShots';
+        let currentScreenshot = new ScreenShot();
+        const currentDateTime = getCurrentDateTime();
+        currentScreenshot.Base64 = encode(img);
+        currentScreenshot.Status = ImageStatus.UNREAD;
+        currentScreenshot.CreationDateTime = currentDateTime;
+        currentScreenshot.ImageName = 'Screenshot@' + currentDateTime;
+        firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(currentScreenshot, (err: any) => {
+            if (err) {
+                logEvent('Database Set Error', err);
+            }
+        })
+    }).catch((err: any) => {
+        console.log(err)
+    })
+
+
+}
+
+// startUp();

@@ -13,7 +13,7 @@ export function getCurrentDateTime(date: boolean = true, time: boolean = true): 
         + currentDateTime.getFullYear();
 
     if (date && time) {
-        return currentDate + ' @ ' + currentTime;
+        return currentDate + '@' + currentTime;
     } else if (date && !time) {
         return currentDate;
     } else if (!date && time) {
