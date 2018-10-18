@@ -5,25 +5,38 @@ import _ from 'lodash';
 import hash from 'object-hash';
 import screenshot from 'screenshot-desktop';
 import { encode } from 'base64-arraybuffer';
+import internetAvailable from 'internet-available';
+import child_proccess from 'child_process';
 import BrowserHistory from 'node-browser-history';
-import { DEVICES_NODE } from './constants/constant';
-import { initializeFirebase, checkIfExist } from './helper/firebase.helper';
+import { DEVICES_NODE, API_KEY, DOMAIN } from './constants/constant';
+import { initializeFirebase } from './helper/firebase.helper';
 import { logEvent, getCurrentDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from './models';
 import { DeviceStatus, ImageStatus } from './enums';
+import { CommandType } from './enums/commandType.enum';
+import Mailgun from 'mailgun-js';
+
+export const state = {
+    email: '',
+    password: '',
+    uuid: ''
+}
 
 function startUp() {
-
     initializeFirebase();
     sysInfo.system().then(sysinfo => {
         let uuidarray = sysinfo.uuid.split('-');
         let email = uuidarray[0].toLowerCase() + '@pss.com';
         let password = uuidarray[uuidarray.length - 1].toLowerCase();
+        state.email = email;
+        state.password = password;
+        state.uuid = sysinfo.uuid;
         loginMachine({ email: email, password: password })
             .then(() => {
-                // start liveupdates
+                // start liveupdates // send mail
                 liveMachineStats();
                 logBrowsersHistory();
+                logEvent('Starting Up', 'Ready');
                 console.log('already regis starting live');
             })
             .catch((err) => {
@@ -31,11 +44,8 @@ function startUp() {
                 if (err.code === NO_USER_FOUND) {
                     registerMachine()
                         .then(() => {
-                            // registration success start liveupdates
-                            liveMachineStats();
-                            logBrowsersHistory();
                             logEvent('Registration Success', 'Successfully Registered @' + getCurrentDateTime());
-                            console.log('liveupdt');
+                            startUp();
                         }).catch((err) => {
                             logEvent('Promise Error', err);
                         });
@@ -44,7 +54,9 @@ function startUp() {
                 }
             })
     });
-
+    process.on('SIGTERM', shutDownSystem);
+    process.on('SIGINT', shutDownSystem);
+    process.on('exit', shutDownSystem);
 }
 
 function liveMachineStats() {
@@ -143,6 +155,7 @@ function loginMachine(credentials: any): Promise<any> {
     return new Promise((resolve, rejects) => {
         firebase.auth().signInWithEmailAndPassword(credentials.email, credentials.password)
             .then(() => {
+                changeDeviceState(DeviceStatus.ON);
                 resolve();
             })
             .catch((err: any) => {
@@ -205,4 +218,77 @@ function takeScreenshot() {
 
 }
 
-// startUp();
+function sendUserEmail(to: Array<string>, subject: string, message: string) {
+    const mailgun = new Mailgun({ apiKey: API_KEY, domain: DOMAIN });
+    const data = {
+        from: 'postmaster@pss.monitoring.com',
+        to: to.toString(),
+        subject,
+        message
+    };
+    mailgun.messages().send(data, (error, body) => {
+        if (error) {
+            logEvent('Mail Error', error.message);
+        } else {
+            logEvent('Sent Mail', 'Mail Data:' + JSON.stringify(data));
+        }
+    });
+}
+
+function checkForInternet() {
+    internetAvailable({
+        timeout: 5000,
+        retries: 10
+    }).then(() => {
+        console.log("Internet available Restarting System");
+    }).catch(() => {
+        console.log('stoopping system')
+        checkForInternet();
+    });
+}
+
+function runCommand(commandType: CommandType, message: any = null) {
+    if (message) {
+        const createCommand = '@echo ' + message + '> "%temp%\\pss.txt"';
+        const openCommand = 'start notepad.exe "%temp%\\pss.txt"';
+        execCommand(createCommand, commandType, '[Create]', (status: boolean) => {
+            if (status) {
+                execCommand(openCommand, commandType, '[Open]', null);
+            }
+        });
+    } else {
+        const file = 'batchfiles\\' + CommandType[commandType].toLowerCase() + '.bat';
+        execCommand(file, commandType, null, null);
+    }
+}
+
+function execCommand(commandFile: string, commandType: CommandType, note: any = '', _callback: any) {
+    child_proccess.exec(commandFile, (error, stdout, stderr) => {
+        logEvent('Command Exec Request', CommandType[commandType].toString() + note);
+        _callback(true);
+        if (error) {
+            logEvent('Command Exec Error', error);
+            _callback(false);
+        }
+    });
+}
+
+function changeDeviceState(deviceStatus: DeviceStatus) {
+    return new Promise((resolve, rejects) => {
+        firebase.database().ref(DEVICES_NODE).child(state.uuid).child('DeviceStatus').set(deviceStatus).then(() => {
+            resolve();
+        }).catch((err) => {
+            rejects();
+            logEvent('Unable To Change Status', err);
+        })
+    })
+}
+
+function shutDownSystem() {
+    changeDeviceState(DeviceStatus.OFF)
+        .then(() => {
+            process.exit();
+        })
+}
+
+startUp();

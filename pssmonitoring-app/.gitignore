@@ -1,3 +1,4 @@
 /node_modules
 /compiled
-/src/configs/firebase-config.ts
+/src/configs/*
+/build

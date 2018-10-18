@@ -1,5 +1,6 @@
 import { Log } from "../models";
 import firebase from "firebase";
+import { state } from "..";
 
 export function getCurrentDateTime(date: boolean = true, time: boolean = true): string {
     const currentDateTime = new Date();
@@ -26,8 +27,7 @@ export function getCurrentDateTime(date: boolean = true, time: boolean = true): 
 export function logEvent(title: string, details: any): void {
     const log = new Log();
     log.title = title;
-    log.details = JSON.stringify(details);
+    log.details = typeof details !== 'string' ? JSON.stringify(details) : details;
     log.time = getCurrentDateTime();
-    log.deviceId = 'devb';
-    firebase.database().ref('Logs').push(log);
+    firebase.database().ref('Logs').child(state.uuid).push(log);
 }
