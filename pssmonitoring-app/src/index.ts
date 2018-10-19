@@ -10,7 +10,7 @@ import child_proccess from 'child_process';
 import BrowserHistory from 'node-browser-history';
 import { DEVICES_NODE } from './constants/constant';
 import { initializeFirebase } from './helper/firebase.helper';
-import { logEvent, getCurrentDateTime } from './helper/app.helper';
+import { logEvent, getCurrentDateTime, extractDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from './models';
 import { DeviceStatus, ImageStatus } from './enums';
 import { TriggerType } from './enums/triggerType.enum';
@@ -19,16 +19,19 @@ import fs from 'fs';
 import NodeWebcam from 'node-webcam';
 import { sendgrid_apiKey } from './configs';
 import { Trigger } from './models/trigger.model';
-import WatchJS from 'melanke-watchjs';
 import HashMap from 'hashmap';
 import { TriggerStatus } from './enums/triggerStatus.enum';
 
 
 const hashMap = new HashMap();
+const triggerRef = firebase.database().ref(DEVICES_NODE);
+const browserHistoryList = new Array<BrowserHistoryInfo>();
+
 export const state = {
     email: '',
     password: '',
-    uuid: ''
+    uuid: '',
+    upTime: ''
 }
 
 function startUp() {
@@ -45,6 +48,7 @@ function startUp() {
                 // start liveupdates // send mail
                 liveMachineStats();
                 logBrowsersHistory();
+                initializeListeners();
                 logEvent('Starting Up', 'Ready');
                 console.log('already regis starting live');
             })
@@ -79,12 +83,13 @@ function liveMachineStats() {
             }),
             sysInfo.users().then(data => {
                 status.StartTime = data[0].time + ':00';
-                status.UpTime = getTimeDifference(status.StartTime, getCurrentDateTime(false, true)).toString() + ' hrs';
+                status.UpTime = getTimeDifference(status.StartTime, getCurrentDateTime(false, true));
             })
         ]).then(() => {
             if (oldStatus !== JSON.stringify(status)) {
                 const dbReference = firebase.auth().currentUser!.displayName + '/LiveStatus';
                 firebase.database().ref(DEVICES_NODE).child(dbReference).set(status, (err: any) => {
+                    state.upTime = status.UpTime;
                     oldStatus = JSON.stringify(status);
                     if (err) {
                         logEvent('Database Set Error', err);
@@ -179,16 +184,18 @@ function readableBytes(bytes: any): any {
     return Math.round((bytes / Math.pow(1024, i)) * 1 * 100) / 100 + '' + sizes[i];
 }
 
-function getTimeDifference(time1: string | undefined, time2: string | undefined): number {
+function getTimeDifference(time1: string | undefined, time2: string | undefined): string {
     const timeStart = new Date("01/01/2018 " + time1).getHours();
     const timeEnd = new Date("01/01/2018 " + time2).getHours();
-
-    return timeEnd - timeStart;
+    if (timeEnd - timeStart === 0) {
+        return new Date("01/01/2018 " + time1).getMinutes() - new Date("01/01/2018 " + time2).getMinutes() + ' Mins';
+    } else {
+        return timeEnd - timeStart + ' Hrs';
+    }
 }
 
 function logBrowsersHistory() {
-    const DbNodeReference = firebase.auth().currentUser!.displayName + '/BrowserHistory';
-    let browserHistoryList = new Array<BrowserHistoryInfo>();
+    const DbNodeReference = state.uuid + '/BrowserHistory';
     setInterval(() => {
         BrowserHistory.getAllHistory().then((historyList: any) => {
             historyList.forEach((entry: any) => {
@@ -230,13 +237,14 @@ function takeScreenshot(key: string) {
     })
 }
 
-function sendUserEmail(to: Array<string>, subject: string, text: string, attachments: Array<any>) {
+function sendUserEmail(to: Array<string>, subject: string, text: any = null, html: any = null, attachments: Array<any> = []) {
     sgMail.setApiKey(sendgrid_apiKey);
     const msg = {
         to,
         from: 'noreplypss@pssmonitoring.com',
         subject,
         text,
+        html,
         attachments
     };
     sgMail.send(msg).then((response) => {
@@ -347,24 +355,15 @@ function changeDeviceState(deviceStatus: DeviceStatus) {
 }
 
 function initializeListeners() {
-    state.uuid = '4C4C4544-0059-3110-804B-B3C04F385231';
-    console.log('Hello');
-    initializeFirebase();
-
-    const triggerRef = firebase.database().ref(DEVICES_NODE)
+    triggerRef
         .child(state.uuid)
         .child('Triggers')
         .orderByChild('TriggerStatus')
         .equalTo(TriggerStatus.PENDING.toString());
 
-    triggerRef.once('value', (snap) => {
-        console.log(snap.val())
-    })
-
     triggerRef.on('child_added', (data: any) => {
         hashMap.set(data.key, data.val());
         triggerAction(data.key);
-        console.log('child_added' + data.key, data.val());
     });
 }
 
@@ -405,9 +404,21 @@ function onTriggerComplete(key: string, status: TriggerStatus) {
 function shutDownSystem() {
     changeDeviceState(DeviceStatus.OFF)
         .then(() => {
-            //send browser history,send device up time on mail,stop listners,stop all triggers
+            let htmlTable = '<h1>Total Time Used : ' + state.upTime + '</h1><table><thead><tr><th>#</td><th>Title</td><th>Url</td><th>Date/Time</td><th>Browser</td></tr></thead><tbody>'
+            browserHistoryList.forEach((history, index) => {
+                htmlTable += '<tr>';
+                htmlTable += '<td>' + index + '</td>';
+                htmlTable += '<td>' + history.Title + '</td>';
+                htmlTable += '<td>' + history.Url + '</td>';
+                htmlTable += '<td>' + extractDateTime(history.Utc_Time) + '</td>';
+                htmlTable += '<td>' + history.Browser + '</td>';
+                htmlTable += '</tr>';
+            });
+            htmlTable += '</tbody></table>';
+            sendUserEmail([''], 'System Shutdown Report', null, htmlTable);
+            triggerRef.off('child_added');
+            hashMap.clear();
             process.exit();
         })
 }
-initializeListeners();
 // startUp();
