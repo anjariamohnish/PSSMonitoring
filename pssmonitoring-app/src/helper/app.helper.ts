@@ -26,8 +26,8 @@ export function getCurrentDateTime(date: boolean = true, time: boolean = true): 
 
 export function logEvent(title: string, details: any): void {
     const log = new Log();
-    log.title = title;
-    log.details = typeof details !== 'string' ? JSON.stringify(details) : details;
-    log.time = getCurrentDateTime();
+    log.Title = title;
+    log.Details = typeof details !== 'string' ? JSON.stringify(details) : details;
+    log.Time = getCurrentDateTime();
   //  firebase.database().ref('Logs').child(state.uuid).push(log);
 }

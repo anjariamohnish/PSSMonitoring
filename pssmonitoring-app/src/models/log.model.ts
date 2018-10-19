@@ -1,5 +1,5 @@
 export class Log {
-    title!: string;
-    details!: string;
-    time: string | undefined;
+    Title!: string;
+    Details!: string;
+    Time: string | undefined;
 }

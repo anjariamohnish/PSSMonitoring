@@ -1,7 +1,7 @@
 export class BrowserHistoryInfo {
-    hash!: string;
-    title!: string;
-    url!: string;
-    browser!: string;
-    utc_time!: number;
+    Hash!: string;
+    Title!: string;
+    Url!: string;
+    Browser!: string;
+    Utc_Time!: number;
 }

@@ -1,13 +1,10 @@
 import { TriggerType } from "../enums/triggerType.enum";
+import { TriggerStatus } from "../enums/triggerStatus.enum";
 
 export class Trigger {
-    triggerType!: TriggerType;
-    datetime!: string;
-    isCompleted!: boolean;
-
-    constructor() {
-        this.triggerType = 1;
-        this.datetime = '23';
-        this.isCompleted = false;
-    }
+    TriggerType!: TriggerType;
+    Message!: string;
+    Timestamp!: number;
+    TriggerStatus!: TriggerStatus;
+    User!: string;
 }

@@ -19,7 +19,12 @@ import fs from 'fs';
 import NodeWebcam from 'node-webcam';
 import { sendgrid_apiKey } from './configs';
 import { Trigger } from './models/trigger.model';
+import WatchJS from 'melanke-watchjs';
+import HashMap from 'hashmap';
+import { TriggerStatus } from './enums/triggerStatus.enum';
 
+
+const hashMap = new HashMap();
 export const state = {
     email: '',
     password: '',
@@ -70,7 +75,7 @@ function liveMachineStats() {
         Promise.all([ // promises
             sysInfo.battery().then(data => data.hasbatter ? status.BatteryInfo = data : null),
             sysInfo.mem().then(data => {
-                status.RamInfo = { total: readableBytes(data.total), available: readableBytes(data.available), inUse: readableBytes(data.used) };
+                status.RamInfo = { Total: readableBytes(data.total), Available: readableBytes(data.available), InUse: readableBytes(data.used) };
             }),
             sysInfo.users().then(data => {
                 status.StartTime = data[0].time + ':00';
@@ -201,9 +206,10 @@ function logBrowsersHistory() {
     }, 5000);
 }
 
-function takeScreenshot() {
+function takeScreenshot(key: string) {
+    console.log('inScreenshot')
     screenshot().then((img: any) => {
-        const DbNodeReference = firebase.auth().currentUser!.displayName + '/ScreenShots';
+        const DbNodeReference = state.uuid + '/ScreenShots';
         let currentScreenshot = new ScreenShot();
         const currentDateTime = getCurrentDateTime();
         currentScreenshot.Base64 = encode(img);
@@ -212,14 +218,16 @@ function takeScreenshot() {
         currentScreenshot.ImageName = 'Screenshot@' + currentDateTime;
         firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(currentScreenshot, (err: any) => {
             if (err) {
+                onTriggerComplete(key, TriggerStatus.FAILED);
                 logEvent('Database Set Error', err);
+            } else {
+                onTriggerComplete(key, TriggerStatus.SUCCESS);
             }
-        })
+        });
     }).catch((err: any) => {
+        onTriggerComplete(key, TriggerStatus.FAILED);
         console.log(err)
     })
-
-
 }
 
 function sendUserEmail(to: Array<string>, subject: string, text: string, attachments: Array<any>) {
@@ -242,7 +250,7 @@ function sendUserEmail(to: Array<string>, subject: string, text: string, attachm
     });
 }
 
-function takePicture() {
+function takePicture(key: string) {
     sysInfo.graphics().then((info) => {
         const width = info.displays[0].sizex;
         const height = info.displays[0].sizey;
@@ -260,6 +268,7 @@ function takePicture() {
         const Webcam = NodeWebcam.create(opts);
         Webcam.capture("webcam", function (err: any, data: any) {
             if (err) {
+                onTriggerComplete(key, TriggerStatus.FAILED);
                 logEvent('Webcam Capture Error', JSON.stringify(err));
             }
             if (data) {
@@ -269,9 +278,11 @@ function takePicture() {
                     'Webcam',
                     'Picture Click on ',
                     [{ filename: 'webcam.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' }]);
+                onTriggerComplete(key, TriggerStatus.SUCCESS);
             }
         });
     }).catch((err) => {
+        onTriggerComplete(key, TriggerStatus.FAILED);
         logEvent('Take Picture Error Sysinfo', JSON.stringify(err));
     })
 }
@@ -288,18 +299,28 @@ function checkForInternet() {
     });
 }
 
-function runCommand(triggerType: TriggerType, message: any = null) {
+function runCommand(triggerType: TriggerType, message: any = null, key: string) {
     if (message) {
         const createCommand = '@echo ' + message + '> "%temp%\\pss.txt"';
         const openCommand = 'start notepad.exe "%temp%\\pss.txt"';
         execCommand(createCommand, triggerType, '[Create]', (status: boolean) => {
             if (status) {
-                execCommand(openCommand, triggerType, '[Open]', null);
+                execCommand(openCommand, triggerType, '[Open]', (status: boolean) => {
+                    if (status)
+                        onTriggerComplete(key, TriggerStatus.SUCCESS);
+                    else
+                        onTriggerComplete(key, TriggerStatus.FAILED);
+                });
             }
         });
     } else {
         const file = 'batchfiles\\' + TriggerType[triggerType].toLowerCase() + '.bat';
-        execCommand(file, triggerType, null, null);
+        execCommand(file, triggerType, null, (status: boolean) => {
+            if (status)
+                onTriggerComplete(key, TriggerStatus.SUCCESS);
+            else
+                onTriggerComplete(key, TriggerStatus.FAILED);
+        });
     }
 }
 
@@ -325,43 +346,68 @@ function changeDeviceState(deviceStatus: DeviceStatus) {
     })
 }
 
-function shutDownSystem() {
-    changeDeviceState(DeviceStatus.OFF)
-        .then(() => {
-            //send browser history,send device up time on mail
-            process.exit();
-        })
-}
-
-function initializeListners() {
+function initializeListeners() {
     state.uuid = '4C4C4544-0059-3110-804B-B3C04F385231';
     console.log('Hello');
     initializeFirebase();
-    // firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());
-    // firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());    firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').push(new Trigger());
-  
-  
-    const triggerRef = firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Triggers').orderByChild('isCompleted').equalTo('false');
 
-triggerRef.once('value',(snapshot)=>{
-console.log(snapshot.key,snapshot.val());
-});
+    const triggerRef = firebase.database().ref(DEVICES_NODE)
+        .child(state.uuid)
+        .child('Triggers')
+        .orderByChild('TriggerStatus')
+        .equalTo(TriggerStatus.PENDING.toString());
 
-    // triggerRef.on('child_added', (data: any) => {
-    //     console.log('child_added', data.val());
-    // })
+    triggerRef.once('value', (snap) => {
+        console.log(snap.val())
+    })
 
-
-    // triggerRef.on('child_changed', (data: any) => {
-    //     console.log('child_changed', data.val());
-    // })
-
-
-    // triggerRef.on('child_removed', (data: any) => {
-    //     console.log('child_removed', data.val());
-    // })
-
+    triggerRef.on('child_added', (data: any) => {
+        hashMap.set(data.key, data.val());
+        triggerAction(data.key);
+        console.log('child_added' + data.key, data.val());
+    });
 }
 
-initializeListners();
+function triggerAction(key: string) {
+    const trigger: Trigger = hashMap.get(key);
+    switch (trigger.TriggerType) {
+        case TriggerType.SHUTDOWN:
+        case TriggerType.RESTART:
+        case TriggerType.LOCK:
+        case TriggerType.SIGNOUT:
+            runCommand(trigger.TriggerType, trigger.Message, key);
+            break;
+        case TriggerType.SCREENSHOT:
+            takeScreenshot(key);
+            break;
+        case TriggerType.TAKEPICTURE:
+            takePicture(key);
+            break;
+    }
+}
+
+function onTriggerComplete(key: string, status: TriggerStatus) {
+    console.log(status)
+    const trigger: Trigger = hashMap.get(key);
+    trigger.TriggerStatus = status;
+    firebase.database().ref(DEVICES_NODE)
+        .child(state.uuid)
+        .child('Triggers')
+        .child(key)
+        .update(trigger)
+        .then(() => {
+            hashMap.delete(key);
+        }).catch((err: any) => {
+            logEvent('OnTrigger Complete Error', JSON.stringify(err));
+        });
+}
+
+function shutDownSystem() {
+    changeDeviceState(DeviceStatus.OFF)
+        .then(() => {
+            //send browser history,send device up time on mail,stop listners,stop all triggers
+            process.exit();
+        })
+}
+initializeListeners();
 // startUp();

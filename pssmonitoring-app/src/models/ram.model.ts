@@ -1,5 +1,5 @@
 export class Ram {
-    total!: number;
-    available!: number;
-    inUse!: number;
+    Total!: number;
+    Available!: number;
+    InUse!: number;
 }
