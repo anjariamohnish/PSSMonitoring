@@ -1,11 +1,10 @@
 import firebase from 'firebase';
-import sysInfo, { Systeminformation, fsSize } from 'systeminformation';
+import sysInfo, { Systeminformation } from 'systeminformation';
 import Promise from 'promise';
 import _ from 'lodash';
 import hash from 'object-hash';
 import screenshot from 'screenshot-desktop';
 import { encode } from 'base64-arraybuffer';
-import internetAvailable from 'internet-available';
 import child_proccess from 'child_process';
 import BrowserHistory from 'node-browser-history';
 import { DEVICES_NODE } from './constants/constant';
@@ -30,6 +29,7 @@ const browserHistoryList = new Array<BrowserHistoryInfo>();
 const setIntervals = new Array<NodeJS.Timer>();
 let triggerRef: firebase.database.Query;
 let connectedRef: firebase.database.Query;
+let pingRef: firebase.database.Reference;
 
 export const state = {
     email: '',
@@ -384,6 +384,16 @@ function changeDeviceState(deviceStatus: DeviceStatus) {
 }
 
 function initializeListeners() {
+    pingRef = firebase.database().ref(DEVICES_NODE)
+        .child(state.uuid)
+        .child('PING');
+
+    pingRef.on('value', (data: any) => {
+        if (data.val() === 0) {
+            firebase.database().ref(DEVICES_NODE).child(state.uuid).child('PING').set(1);
+        }
+    })
+
     triggerRef = firebase.database().ref(DEVICES_NODE)
         .child(state.uuid)
         .child('Triggers')
@@ -445,28 +455,38 @@ function shutDownSystem() {
             setIntervals.forEach(interval => {
                 clearInterval(interval);
             });
-            let htmlTable = '<h3>Computer Up Time: ' + state.upTime + '</h3><table border="1"><thead><tr><th>#</td><th>Title</td><th>Url</td><th>Date/Time</td><th>Browser</td></tr></thead><tbody>';
-            browserHistoryList.forEach((history, index) => {
-                htmlTable += '<tr>';
-                htmlTable += '<td>' + (index + 1) + '</td>';
-                htmlTable += '<td>' + history.title + '</td>';
-                htmlTable += '<td>' + history.url + '</td>';
-                htmlTable += '<td>' + extractDateTime(history.utc_time) + '</td>';
-                htmlTable += '<td>' + history.browser + '</td>';
-                htmlTable += '</tr>';
-            });
-            htmlTable += '</tbody></table>';
-            sendUserEmail(['anjariamohnish@gmail.com'], 'Shutdown', null, htmlTable).then().catch().then(() => {
-                triggerRef.off('child_added');
-                connectedRef.off('value');
-                hashMap.forEach((value: Trigger, key: string) => {
-                    onTriggerComplete(key, TriggerStatus.STOPPED);
-                })
-                hashMap.clear();
-                unwatch(state, 'isInternetActive');
-                process.exit();
-            });
+            // let htmlTable = '<h3>Computer Up Time: ' + state.upTime + '</h3><table border="1"><thead><tr><th>#</td><th>Title</td><th>Url</td><th>Date/Time</td><th>Browser</td></tr></thead><tbody>';
+            // browserHistoryList.forEach((history, index) => {
+            //     htmlTable += '<tr>';
+            //     htmlTable += '<td>' + (index + 1) + '</td>';
+            //     htmlTable += '<td>' + history.title + '</td>';
+            //     htmlTable += '<td>' + history.url + '</td>';
+            //     htmlTable += '<td>' + extractDateTime(history.utc_time) + '</td>';
+            //     htmlTable += '<td>' + history.browser + '</td>';
+            //     htmlTable += '</tr>';
+            // });
+            // htmlTable += '</tbody></table>';
+            // sendUserEmail(['anjariamohnish@gmail.com'], 'Shutdown', null, htmlTable).then().catch().then(() => {
+            //     triggerRef.off('child_added');
+            //     pingRef.off('value');
+            //     connectedRef.off('value');
+            //     hashMap.forEach((value: Trigger, key: string) => {
+            //         onTriggerComplete(key, TriggerStatus.STOPPED);
+            //     })
+            //     hashMap.clear();
+            //     unwatch(state, 'isInternetActive');
+            //     process.exit();
+            // });
 
+            triggerRef.off('child_added');
+            pingRef.off('value');
+            connectedRef.off('value');
+            hashMap.forEach((value: Trigger, key: string) => {
+                onTriggerComplete(key, TriggerStatus.STOPPED);
+            })
+            hashMap.clear();
+            unwatch(state, 'isInternetActive');
+            process.exit();
 
         })
 
