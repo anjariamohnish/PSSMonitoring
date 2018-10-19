@@ -29,5 +29,5 @@ export function logEvent(title: string, details: any): void {
     log.title = title;
     log.details = typeof details !== 'string' ? JSON.stringify(details) : details;
     log.time = getCurrentDateTime();
-    firebase.database().ref('Logs').child(state.uuid).push(log);
+  //  firebase.database().ref('Logs').child(state.uuid).push(log);
 }

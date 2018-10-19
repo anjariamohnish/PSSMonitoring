@@ -1,4 +1,4 @@
 /node_modules
 /compiled
-/src/configs/*
+/src/configs.ts
 /build

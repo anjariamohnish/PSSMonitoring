@@ -1,5 +1,5 @@
 import firebase from 'firebase';
-import { firebaseConfig } from '../configs/firebase-config';
+import { firebaseConfig } from '../configs';
 import { logEvent } from './app.helper';
 
 
