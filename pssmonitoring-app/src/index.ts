@@ -1,5 +1,5 @@
 import firebase from 'firebase';
-import sysInfo, { Systeminformation } from 'systeminformation';
+import sysInfo, { Systeminformation, fsSize } from 'systeminformation';
 import Promise from 'promise';
 import _ from 'lodash';
 import hash from 'object-hash';
@@ -15,27 +15,42 @@ import { Device, DeviceInfo, LiveStatus, ScreenShot, BrowserHistoryInfo } from '
 import { DeviceStatus, ImageStatus } from './enums';
 import { TriggerType } from './enums/triggerType.enum';
 import sgMail from '@sendgrid/mail';
-import fs from 'fs';
 import NodeWebcam from 'node-webcam';
 import { sendgrid_apiKey } from './configs';
 import { Trigger } from './models/trigger.model';
 import HashMap from 'hashmap';
 import { TriggerStatus } from './enums/triggerStatus.enum';
+import WatchJS from 'melanke-watchjs';
 
 
+const watch = WatchJS.watch;
+const unwatch = WatchJS.unwatch;
 const hashMap = new HashMap();
-const triggerRef = firebase.database().ref(DEVICES_NODE);
 const browserHistoryList = new Array<BrowserHistoryInfo>();
+const setIntervals = new Array<NodeJS.Timer>();
+let triggerRef: firebase.database.Query;
+let connectedRef: firebase.database.Query;
 
 export const state = {
     email: '',
     password: '',
     uuid: '',
-    upTime: ''
+    upTime: '',
+    isInternetActive: false
 }
 
+initializeFirebase();
+checkForInternetConnection();
+
+watch(state, ['isInternetActive'], () => {
+    if (state.isInternetActive) {
+        startUp();
+    } else {
+        pauseSystem();
+    }
+});
+
 function startUp() {
-    initializeFirebase();
     sysInfo.system().then(sysinfo => {
         let uuidarray = sysinfo.uuid.split('-');
         let email = uuidarray[0].toLowerCase() + '@pss.com';
@@ -75,7 +90,7 @@ function startUp() {
 function liveMachineStats() {
     const status = new LiveStatus();
     let oldStatus: any = null;
-    setInterval(() => {
+    const liveStatusInterval = setInterval(() => {
         Promise.all([ // promises
             sysInfo.battery().then(data => data.hasbatter ? status.BatteryInfo = data : null),
             sysInfo.mem().then(data => {
@@ -101,6 +116,7 @@ function liveMachineStats() {
         })
 
     }, 5000);
+    setIntervals.push(liveStatusInterval);
 }
 
 function registerMachine(): Promise<any> {
@@ -196,7 +212,7 @@ function getTimeDifference(time1: string | undefined, time2: string | undefined)
 
 function logBrowsersHistory() {
     const DbNodeReference = state.uuid + '/BrowserHistory';
-    setInterval(() => {
+    let browserHistoryInterval = setInterval(() => {
         BrowserHistory.getAllHistory().then((historyList: any) => {
             historyList.forEach((entry: any) => {
                 if (!(_.find(browserHistoryList, { hash: hash(entry) }))) {
@@ -211,10 +227,10 @@ function logBrowsersHistory() {
             });
         })
     }, 5000);
+    setIntervals.push(browserHistoryInterval);
 }
 
 function takeScreenshot(key: string) {
-    console.log('inScreenshot')
     screenshot().then((img: any) => {
         const DbNodeReference = state.uuid + '/ScreenShots';
         let currentScreenshot = new ScreenShot();
@@ -228,33 +244,45 @@ function takeScreenshot(key: string) {
                 onTriggerComplete(key, TriggerStatus.FAILED);
                 logEvent('Database Set Error', err);
             } else {
+                const trigger: Trigger = hashMap.get(key);
+                const currentTimeDate = getCurrentDateTime();
+                sendUserEmail(
+                    [trigger.User.email],
+                    'Screenshot ' + currentTimeDate,
+                    'Screenshot Taken by ' + trigger.User.name,
+                    [{ filename: 'Screenshot' + currentDateTime + '.jpg', content: currentScreenshot.Base64, contentId: 'Screenshot' + currentDateTime }]);
                 onTriggerComplete(key, TriggerStatus.SUCCESS);
             }
         });
     }).catch((err: any) => {
         onTriggerComplete(key, TriggerStatus.FAILED);
-        console.log(err)
+        console.log(err);
     })
 }
 
 function sendUserEmail(to: Array<string>, subject: string, text: any = null, html: any = null, attachments: Array<any> = []) {
-    sgMail.setApiKey(sendgrid_apiKey);
-    const msg = {
-        to,
-        from: 'noreplypss@pssmonitoring.com',
-        subject,
-        text,
-        html,
-        attachments
-    };
-    sgMail.send(msg).then((response) => {
-        if (response['0'].statusCode === 202) {
-            logEvent('Mail Sent', msg.to.toString() + '|' + msg.subject + '|' + msg.text);
-        } else {
-            logEvent('Mail Send Error', response['0'].statusCode + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
-        }
-    }).catch((err) => {
-        logEvent('Mail Send Error', JSON.stringify(err) + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
+    return new Promise((resolve, rejects) => {
+        sgMail.setApiKey(sendgrid_apiKey);
+        const msg = {
+            to,
+            from: 'noreply_pss@pssmonitoring.com',
+            subject,
+            text: text ? text : 'Please Dont Reply on this Email',
+            html: html ? html : '',
+            attachments
+        };
+        sgMail.send(msg).then((response) => {
+            if (response['0'].statusCode === 202) {
+                logEvent('Mail Sent', msg.to.toString() + '|' + msg.subject + '|' + msg.text);
+                resolve();
+            } else {
+                logEvent('Mail Send Error', response['0'].statusCode + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
+                rejects();
+            }
+        }).catch((err) => {
+            logEvent('Mail Send Error', JSON.stringify(err) + '||' + msg.to.toString() + '|' + msg.subject + '|' + msg.text);
+            rejects();
+        });
     });
 }
 
@@ -274,18 +302,20 @@ function takePicture(key: string) {
             callbackReturn: "base64"
         };
         const Webcam = NodeWebcam.create(opts);
-        Webcam.capture("webcam", function (err: any, data: any) {
+        Webcam.capture('webcam', function (err: any, data: any) {
             if (err) {
                 onTriggerComplete(key, TriggerStatus.FAILED);
                 logEvent('Webcam Capture Error', JSON.stringify(err));
             }
             if (data) {
                 // send to firebase
+                const trigger: Trigger = hashMap.get(key);
+                const currentTimeDate = getCurrentDateTime();
                 sendUserEmail(
-                    ['anjariamohnish@gmail.com'],
-                    'Webcam',
-                    'Picture Click on ',
-                    [{ filename: 'webcam.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' }]);
+                    [trigger.User.email],
+                    'Webcam ' + currentTimeDate,
+                    'Webcam Picture Taken by ' + trigger.User.name,
+                    [{ filename: 'webcam' + currentTimeDate + '.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' + currentTimeDate }]);
                 onTriggerComplete(key, TriggerStatus.SUCCESS);
             }
         });
@@ -295,15 +325,14 @@ function takePicture(key: string) {
     })
 }
 
-function checkForInternet() {
-    internetAvailable({
-        timeout: 5000,
-        retries: 10
-    }).then(() => {
-        console.log("Internet available Restarting System");
-    }).catch(() => {
-        console.log('stoopping system')
-        checkForInternet();
+function checkForInternetConnection() {
+    connectedRef = firebase.database().ref('.info/connected');
+    connectedRef.on('value', function (snap: any) {
+        if (snap.val() === true) {
+            state.isInternetActive = true;
+        } else {
+            state.isInternetActive = false;
+        }
     });
 }
 
@@ -355,11 +384,11 @@ function changeDeviceState(deviceStatus: DeviceStatus) {
 }
 
 function initializeListeners() {
-    triggerRef
+    triggerRef = firebase.database().ref(DEVICES_NODE)
         .child(state.uuid)
         .child('Triggers')
         .orderByChild('TriggerStatus')
-        .equalTo(TriggerStatus.PENDING.toString());
+        .equalTo(TriggerStatus.PENDING);
 
     triggerRef.on('child_added', (data: any) => {
         hashMap.set(data.key, data.val());
@@ -382,11 +411,12 @@ function triggerAction(key: string) {
         case TriggerType.TAKEPICTURE:
             takePicture(key);
             break;
+        default:
+            logEvent('Trigger Not Found', JSON.stringify(trigger));
     }
 }
 
 function onTriggerComplete(key: string, status: TriggerStatus) {
-    console.log(status)
     const trigger: Trigger = hashMap.get(key);
     trigger.TriggerStatus = status;
     firebase.database().ref(DEVICES_NODE)
@@ -401,24 +431,43 @@ function onTriggerComplete(key: string, status: TriggerStatus) {
         });
 }
 
+function pauseSystem() {
+    setIntervals.forEach(interval => {
+        clearInterval(interval);
+    });
+    triggerRef.off('child_added');
+    hashMap.clear();
+}
+
 function shutDownSystem() {
     changeDeviceState(DeviceStatus.OFF)
         .then(() => {
-            let htmlTable = '<h1>Total Time Used : ' + state.upTime + '</h1><table><thead><tr><th>#</td><th>Title</td><th>Url</td><th>Date/Time</td><th>Browser</td></tr></thead><tbody>'
+            setIntervals.forEach(interval => {
+                clearInterval(interval);
+            });
+            let htmlTable = '<h3>Computer Up Time: ' + state.upTime + '</h3><table border="1"><thead><tr><th>#</td><th>Title</td><th>Url</td><th>Date/Time</td><th>Browser</td></tr></thead><tbody>';
             browserHistoryList.forEach((history, index) => {
                 htmlTable += '<tr>';
-                htmlTable += '<td>' + index + '</td>';
-                htmlTable += '<td>' + history.Title + '</td>';
-                htmlTable += '<td>' + history.Url + '</td>';
-                htmlTable += '<td>' + extractDateTime(history.Utc_Time) + '</td>';
-                htmlTable += '<td>' + history.Browser + '</td>';
+                htmlTable += '<td>' + (index + 1) + '</td>';
+                htmlTable += '<td>' + history.title + '</td>';
+                htmlTable += '<td>' + history.url + '</td>';
+                htmlTable += '<td>' + extractDateTime(history.utc_time) + '</td>';
+                htmlTable += '<td>' + history.browser + '</td>';
                 htmlTable += '</tr>';
             });
             htmlTable += '</tbody></table>';
-            sendUserEmail([''], 'System Shutdown Report', null, htmlTable);
-            triggerRef.off('child_added');
-            hashMap.clear();
-            process.exit();
+            sendUserEmail(['anjariamohnish@gmail.com'], 'Shutdown', null, htmlTable).then().catch().then(() => {
+                triggerRef.off('child_added');
+                connectedRef.off('value');
+                hashMap.forEach((value: Trigger, key: string) => {
+                    onTriggerComplete(key, TriggerStatus.STOPPED);
+                })
+                hashMap.clear();
+                unwatch(state, 'isInternetActive');
+                process.exit();
+            });
+
+
         })
+
 }
-// startUp();
