@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { NotificationContainer } from 'react-notifications';
-import Loadable from 'react-loading-overlay';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import firebase from 'firebase';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
@@ -13,25 +11,24 @@ import 'react-notifications/lib/notifications.css';
 import 'animate.css';
 import 'hover.css';
 import './App.css';
-
-
-import { firebaseConfig } from './firebase-config';
 import Login from './Components/Login/login';
+import Loader from './Components/Loader/loader';
 import Dashboard from './Components/Dashboard/dashboard';
 
 class App extends Component {
 
 
   componentDidMount() {
-    firebase.initializeApp(firebaseConfig);
   }
 
   render() {
     return (
-      <Loadable
-        active={this.props.showLoader}
-        spinner
-        text={this.props.loaderText}>
+      <div>
+       <Loader
+          active={this.props.showLoader}
+          spinner
+          text={this.props.loaderText}>
+        </Loader>
         <Switch>
           <Route exact path="/" component={Login} />
           <Route exact path="/dashboard" component={Dashboard} />
@@ -39,7 +36,7 @@ class App extends Component {
           {/* <Route component={404Component} /> */}
         </Switch>
         <NotificationContainer />
-      </Loadable>
+      </div>
     );
   }
 }

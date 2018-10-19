@@ -1,3 +1,7 @@
+.modal {
+    z-index: 1 !important;
+}
+
 .modal-login {
     color: #636363;
 }
@@ -96,7 +100,7 @@
     font-size: 20px;
 }
 
-.modal{
+.modal {
     position: fixed;
     top: 0;
     right: 0;
