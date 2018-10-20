@@ -164,7 +164,7 @@ class Dashboard extends Component {
         this.setState({ deviceButtonElement: null });
     };
 
-    getUserInitials = () => {
+    getUserInitials() {
         let userInitials = '';
         if (this.props.userInfo) {
             this.props.userInfo.name.split(' ').forEach((name) => {
@@ -210,13 +210,14 @@ class Dashboard extends Component {
                             <i className="fa fa-laptop" aria-hidden="true"></i>
                             <span className="device-status animated infinite  flash slower"></span>
                         </Avatar>
-                        <Avatar className={classes.orangeAvatar} onClick={this.openPopper}>{this.getUserInitials}</Avatar>
+                        <Avatar className={classes.orangeAvatar} onClick={this.openPopper}>{this.getUserInitials()}</Avatar>
 
                         <Popover
                             id="profile-popper"
                             open={openProfilePopper}
                             anchorEl={profileButtonElement}
                             onClose={this.handleClose}
+                            style={{cursor:'pointer'}}
                             anchorOrigin={{
                                 vertical: 'bottom',
                                 horizontal: 'left',
