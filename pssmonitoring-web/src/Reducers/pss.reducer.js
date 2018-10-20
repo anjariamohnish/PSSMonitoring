@@ -1,4 +1,4 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT } from '../Actions/types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER } from '../Actions/types';
 
 const initialState = {
     showLoader: false,
@@ -16,6 +16,16 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 loaderText: action.payload
+            }
+        case SET_USER_INFO:
+            return {
+                ...state,
+                userInfo: action.payload
+            }
+        case SIGNOUT_USER:
+            return {
+                ...state,
+                userInfo: null
             }
         default:
             return state;

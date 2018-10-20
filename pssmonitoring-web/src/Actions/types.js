@@ -1,2 +1,4 @@
 export const TOGGLE_LOADER = 'SHOW_LOADER';
 export const CHANGE_LOADER_TEXT = 'CHANGE_LOADER_TEXT';
+export const SET_USER_INFO = 'SET_USER_INFO';
+export const SIGNOUT_USER = 'SIGNOUT_USER';

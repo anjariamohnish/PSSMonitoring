@@ -9,6 +9,7 @@ import avatar from '../../Assets/Image/avatar.png';
 
 import { notifyUser, notifyType, validateUserInputs, emailRegex, loaderState } from '../../Utils/pss.helper';
 import { toggleLoader } from '../../Actions/pss.actions';
+import { loginUser, sendForgotPasswordMail } from '../../Actions/api.actions';
 
 class Login extends Component {
 
@@ -19,6 +20,7 @@ class Login extends Component {
             showPassword: false,
             initiateForgotPassword: false
         };
+        this.props.userInfo ? this.props.history.push('/dashboard') : null;
     }
 
     togglePassword() {
@@ -38,12 +40,37 @@ class Login extends Component {
         if (this.state.initiateForgotPassword) {
             if (this.state.email && validateUserInputs(this.state.email, emailRegex)) {
                 this.props.toggleLoader(loaderState.ON, 'Sending Password Recovery Mail...');
+                this.props.sendForgotPasswordMail(this.state.email)
+                    .then(() => {
+                        notifyUser('Password Recovery Mail has been sent successfully', notifyType.success);
+                        this.setState({ initiateForgotPassword: false, email: '' });
+                    })
+                    .catch((err) => {
+                        if (err.code === 'auth/user-not-found') {
+                            notifyUser('No Such Email/User Exist in our System', notifyType.error);
+                        } else {
+                            notifyUser(err.message, notifyType.error);
+                        }
+                    })
+                    .then(() => {
+                        this.props.toggleLoader(loaderState.OFF);
+                    })
             } else {
                 notifyUser('Please Enter Valid Email Id', notifyType.error);
             }
         } else {
             if (this.state.email && this.state.password && validateUserInputs(this.state.email, emailRegex)) {
                 this.props.toggleLoader(loaderState.ON, 'Logging In...');
+                this.props.loginUser({ email: this.state.email, password: this.state.password })
+                    .then(() => {
+                        notifyUser('Logged In Successfully', notifyType.success);
+                        this.props.toggleLoader(loaderState.OFF);
+                        this.props.history.push('/dashboard');
+                    })
+                    .catch(() => {
+                        this.setState({ password: '' });
+                        this.props.toggleLoader(loaderState.OFF);
+                    })
             } else {
                 notifyUser('Please Check your Credentials', notifyType.error);
             }
@@ -78,12 +105,12 @@ class Login extends Component {
                         <div className="modal-body">
                             <form>
                                 <div className="form-group">
-                                    <input type="text" id="email" className="form-control" name="email" placeholder="Email" required="required"
+                                    <input type="text" id="email" className="form-control" name="email" placeholder="Email"
                                         onKeyUp={this.detectEnterEvent.bind(this)} onChange={this.handleInputChange.bind(this)} onPaste={this.handleInputChange.bind(this)} />
                                 </div>
                                 <div className="form-group" hidden={this.state.initiateForgotPassword}>
-                                    <input type={this.state.showPassword ? 'text' : 'password'} id="password" className="form-control" name="password" placeholder="Password" required="required"
-                                        onKeyUp={this.detectEnterEvent.bind(this)} onChange={this.handleInputChange.bind(this)} onPaste={this.handleInputChange.bind(this)}
+                                    <input type={this.state.showPassword ? 'text' : 'password'} id="password" className="form-control" name="password" placeholder="Password" autoComplete="true"
+                                        onKeyUp={this.detectEnterEvent.bind(this)} value={this.state.password ? this.state.password : ''} onChange={this.handleInputChange.bind(this)} onPaste={this.handleInputChange.bind(this)}
                                     />
                                     <i className={this.state.showPassword ? 'fa fa-eye input-icon' : 'fa fa-eye-slash input-icon'} onClick={this.togglePassword.bind(this)} ></i>
                                 </div>
@@ -103,7 +130,7 @@ class Login extends Component {
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <a onClick={this.toggleForgotPassword.bind(this)}>
+                            <a className="hvr-grow" onClick={this.toggleForgotPassword.bind(this)}>
                                 {this.state.initiateForgotPassword ? 'Click to Login' : 'Forgot Password?'}
                             </a>
                         </div>
@@ -114,6 +141,12 @@ class Login extends Component {
     }
 }
 
+const mapStateToProps = (state) => {
+    return {
+        userInfo: state.pssReducer.userInfo,
+    }
+}
 
-export default connect(null, { toggleLoader })(Login);
+
+export default connect(mapStateToProps, { toggleLoader, loginUser, sendForgotPasswordMail })(Login);
 

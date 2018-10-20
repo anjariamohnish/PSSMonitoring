@@ -24,13 +24,14 @@ class App extends Component {
   render() {
     return (
       <div>
-       <Loader
+        <Loader
           active={this.props.showLoader}
           spinner
           text={this.props.loaderText}>
         </Loader>
         <Switch>
           <Route exact path="/" component={Login} />
+          <Route exact path="/login" component={Login} />
           <Route exact path="/dashboard" component={Dashboard} />
 
           {/* <Route component={404Component} /> */}
