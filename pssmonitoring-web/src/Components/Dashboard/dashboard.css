@@ -27,3 +27,7 @@ body {
     justify-content: center;
     background-color: #00a23e;
 }
+
+.offline{
+    background-color: red !important;
+}

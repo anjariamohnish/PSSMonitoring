@@ -1,4 +1,4 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER } from '../Actions/types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS } from '../Actions/types';
 
 const initialState = {
     showLoader: false,
@@ -25,7 +25,22 @@ export default function (state = initialState, action) {
         case SIGNOUT_USER:
             return {
                 ...state,
-                userInfo: null
+                userInfo: null,
+                deviceInfo: null
+            }
+        case SET_DEVICE_DATA:
+            return {
+                ...state,
+                deviceInfo: action.payload
+            }
+        case CHANGE_DEVICE_STATUS:
+            return {
+                ...state,
+                deviceInfo: {
+                    ...state.deviceInfo,
+                    isDeviceOnline: action.payload,
+                    isDevicePinging: action.payload
+                }
             }
         default:
             return state;

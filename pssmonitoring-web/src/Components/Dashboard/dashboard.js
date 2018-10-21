@@ -27,9 +27,9 @@ import deepOrange from '@material-ui/core/colors/deepOrange';
 import './dashboard.css';
 import remoteControl from '../../Assets/Image/remotecontrol.png';
 
-import { signOutUser } from '../../Actions/api.actions';
+import { signOutUser, trackDeviceStatus } from '../../Actions/api.actions';
 import { notifyUser, notifyType } from '../../Utils/pss.helper';
-import { changeLoaderText } from '../../Actions/pss.actions';
+import BrowserHistory from '../BrowserHistory/browserhistory';
 
 const drawerWidth = 240;
 
@@ -131,9 +131,10 @@ class Dashboard extends Component {
         this.state = {
             open: false,
             profileButtonElement: null,
-            deviceButtonElement: null
+            deviceButtonElement: null,
+            currentMenuItemSelected: 'Home'
         };
-        this.props.userInfo ? null : this.props.history.push('/login');
+        this.props.userInfo ? this.props.trackDeviceStatus(this.props.deviceInfo.deviceId) : this.props.history.push('/login');
     }
 
     handleDrawerOpen = () => {
@@ -164,13 +165,16 @@ class Dashboard extends Component {
         this.setState({ deviceButtonElement: null });
     };
 
+    handleDrawerItemClick = (item) => {
+        this.setState({ openDrawer: false, currentMenuItemSelected: item ? item : 'Dashboard' });
+    }
+
     getUserInitials() {
         let userInitials = '';
         if (this.props.userInfo) {
             this.props.userInfo.name.split(' ').forEach((name) => {
                 userInitials += name.charAt(0).toUpperCase();
             });
-            
             return userInitials;
         }
     }
@@ -181,6 +185,24 @@ class Dashboard extends Component {
         }).catch(() => {
             notifyUser('Something Went Wrong', notifyType.error);
         })
+    }
+
+    renderSelectedComponent() {
+        switch (this.state.currentMenuItemSelected) {
+            // case 'Home':
+            //     return (<div>Home</div>);
+            case 'Browser History':
+                return (<BrowserHistory />);
+            // case 'Webcam':
+            //     return (<Webcam />);
+            // case 'Screenshot':
+            //     return (<Screenshot />);
+            // case 'RemoteControl':
+            //     return (<RemoteControl />);
+            // case 'Settings':
+            //     return (<Settings />);
+            default:
+        }
     }
 
     render() {
@@ -201,14 +223,15 @@ class Dashboard extends Component {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="title" color="inherit" className={classes.grow} noWrap>
-                            Dashboard
-                    </Typography>
+                            {this.state.currentMenuItemSelected}
+                        </Typography>
 
                         <Avatar className={classes.avatar} onMouseEnter={this.handlePopoverOpen}
                             onMouseLeave={this.handlePopoverClose}>
 
                             <i className="fa fa-laptop" aria-hidden="true"></i>
-                            <span className="device-status animated infinite  flash slower"></span>
+                            <span
+                                className={"device-status animated infinite flash slower " + (!(this.props.deviceInfo && this.props.deviceInfo.isDevicePinging) ? 'offline' : '')}></span>
                         </Avatar>
                         <Avatar className={classes.orangeAvatar} onClick={this.openPopper}>{this.getUserInitials()}</Avatar>
 
@@ -217,7 +240,7 @@ class Dashboard extends Component {
                             open={openProfilePopper}
                             anchorEl={profileButtonElement}
                             onClose={this.handleClose}
-                            style={{cursor:'pointer'}}
+                            style={{ cursor: 'pointer' }}
                             anchorOrigin={{
                                 vertical: 'bottom',
                                 horizontal: 'left',
@@ -248,7 +271,7 @@ class Dashboard extends Component {
                             }}
                             onClose={this.handlePopoverClose}
                             disableRestoreFocus>
-                            <Typography>HP</Typography>
+                            <Typography>{this.props.deviceInfo ? this.props.deviceInfo.deviceName : ''}</Typography>
                         </Popover>
 
                     </Toolbar>
@@ -266,35 +289,35 @@ class Dashboard extends Component {
 
                     <Divider />
                     <List>
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Home')}>
                             <ListItemIcon>
                                 <i className="fa fa-home" aria-hidden="true"></i>
                             </ListItemIcon>
                             <ListItemText primary="Home" />
                         </ListItem>
 
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Browser History')}>
                             <ListItemIcon>
                                 <History />
                             </ListItemIcon>
                             <ListItemText primary="Broswer History" />
                         </ListItem>
 
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Webcam')}>
                             <ListItemIcon>
                                 <WebCam />
                             </ListItemIcon>
                             <ListItemText primary="Webcam" />
                         </ListItem>
 
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Screenshot')}>
                             <ListItemIcon>
                                 <Screenshot />
                             </ListItemIcon>
                             <ListItemText primary="Screenshot" />
                         </ListItem>
 
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'RemoteControl')}>
                             <ListItemIcon>
                                 <img src={remoteControl} alt="remote-icon" />
                             </ListItemIcon>
@@ -302,7 +325,7 @@ class Dashboard extends Component {
                         </ListItem>
 
 
-                        <ListItem button>
+                        <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Settings')}>
                             <ListItemIcon>
                                 <Settings />
                             </ListItemIcon>
@@ -312,7 +335,7 @@ class Dashboard extends Component {
                 </Drawer>
                 <main className={classes.content}>
                     <div className={classes.toolbar} />
-                    {/* main content goes here */}
+                    {this.renderSelectedComponent()}
                 </main>
             </div>
         );
@@ -322,10 +345,11 @@ class Dashboard extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
+        deviceInfo: state.pssReducer.deviceInfo
     }
 }
 
 export default compose(
     withStyles(styles, { withTheme: true }),
-    connect(mapStateToProps, { signOutUser })
+    connect(mapStateToProps, { signOutUser, trackDeviceStatus })
 )(Dashboard);

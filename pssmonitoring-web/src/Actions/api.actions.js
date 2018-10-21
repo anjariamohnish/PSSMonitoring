@@ -1,6 +1,6 @@
 import firebase from '../firebase';
 import { notifyUser, notifyType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO } from './types';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS } from './types';
 
 export const loginUser = (credentials) => dispatch => {
     return new Promise((resolve, reject) => {
@@ -23,15 +23,27 @@ export const loginUser = (credentials) => dispatch => {
                                 reject();
                             });
                     } else if (snapshot.val() === 1 && credentials.password !== 'pass@671968949441') {
-                        dispatch({
-                            type: SET_USER_INFO,
-                            payload: {
-                                uid: data.user.uid,
-                                name: data.user.displayName,
-                                email: data.user.email
-                            }
-                        })
-                        resolve();
+                        firebase.database().ref('Devices').once('child_added', (snapshot) => {
+                            const snapshotValue = snapshot.val();
+                            dispatch({
+                                type: SET_DEVICE_DATA,
+                                payload: {
+                                    deviceId: snapshot.key,
+                                    deviceName: snapshotValue.DeviceName,
+                                    isDeviceOnline: snapshotValue.DeviceStatus === 1 ? true : false,
+                                    isDevicePinging: snapshotValue.DeviceStatus === 1 ? true : false
+                                }
+                            });
+                            dispatch({
+                                type: SET_USER_INFO,
+                                payload: {
+                                    uid: data.user.uid,
+                                    name: data.user.displayName,
+                                    email: data.user.email
+                                }
+                            });
+                            resolve();
+                        });
                     } else if (snapshot.val() === 1 && credentials.password === 'pass@671968949441') {
                         notifyUser('Please Complete your Password Reset', notifyType.error);
                         firebase.auth().signOut();
@@ -51,11 +63,9 @@ export const loginUser = (credentials) => dispatch => {
     });
 };
 
-
 export const sendForgotPasswordMail = (email) => dispatch => {
     return firebase.auth().sendPasswordResetEmail(email);
 };
-
 
 export const signOutUser = () => dispatch => {
     return new Promise((resolve, reject) => {
@@ -67,5 +77,31 @@ export const signOutUser = () => dispatch => {
         }).catch(() => {
             reject();
         })
+    });
+}
+
+export const trackDeviceStatus = (deviceId) => dispatch => {
+    console.log(deviceId);
+    const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
+    const deviceStatusRef = firebase.database().ref('Devices').child(deviceId).child('DeviceStatus');
+    // pingRef.on('value', (snapshot) => {
+    //     if (snapshot.val() === 1) {
+    //         pingRef.set(0);
+    //     }
+    // });
+
+    deviceStatusRef.on('value', (snapshot) => {
+        console.log(snapshot.val());
+        if (snapshot.val() === 1) {
+            dispatch({
+                type: CHANGE_DEVICE_STATUS,
+                payload: true
+            });
+        } else {
+            dispatch({
+                type: CHANGE_DEVICE_STATUS,
+                payload: false
+            });
+        }
     });
 }
