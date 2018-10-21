@@ -27,7 +27,7 @@ import deepOrange from '@material-ui/core/colors/deepOrange';
 import './dashboard.css';
 import remoteControl from '../../Assets/Image/remotecontrol.png';
 
-import { signOutUser, trackDeviceStatus } from '../../Actions/api.actions';
+import { signOutUser, trackDeviceStatus, stopAllListeners } from '../../Actions/api.actions';
 import { notifyUser, notifyType } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
 
@@ -137,6 +137,10 @@ class Dashboard extends Component {
         this.props.userInfo ? this.props.trackDeviceStatus(this.props.deviceInfo.deviceId) : this.props.history.push('/login');
     }
 
+    componentWillUnmount() {
+        this.props.stopAllListeners();
+    }
+
     handleDrawerOpen = () => {
         this.setState({ open: true });
     };
@@ -192,7 +196,7 @@ class Dashboard extends Component {
             // case 'Home':
             //     return (<div>Home</div>);
             case 'Browser History':
-                return (<BrowserHistory />);
+                return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
             // case 'Webcam':
             //     return (<Webcam />);
             // case 'Screenshot':
@@ -351,5 +355,5 @@ const mapStateToProps = (state) => {
 
 export default compose(
     withStyles(styles, { withTheme: true }),
-    connect(mapStateToProps, { signOutUser, trackDeviceStatus })
+    connect(mapStateToProps, { signOutUser, trackDeviceStatus, stopAllListeners })
 )(Dashboard);

@@ -2,6 +2,8 @@ import firebase from '../firebase';
 import { notifyUser, notifyType } from '../Utils/pss.helper';
 import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS } from './types';
 
+const firebaseListeners = new Array();
+
 export const loginUser = (credentials) => dispatch => {
     return new Promise((resolve, reject) => {
         firebase.auth().signInWithEmailAndPassword(credentials.email, credentials.password)
@@ -103,5 +105,25 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
                 payload: false
             });
         }
+    });
+    firebaseListeners.push(deviceStatusRef);
+}
+
+export const getBrowserHistory = (deviceId) => dispatch => {
+    firebase.database().ref('Devices').child(deviceId).child('BrowserHistory').once('value', (snapshot) => {
+        snapshot.forEach((element) => {
+            console.log(element.key,element.val());
+        })
+    });
+
+}
+
+export const getBrowserHistoryByDate = (deviceId, date) => dispatch => {
+
+}
+
+export const stopAllListeners = () => dispatch => {
+    firebaseListeners.forEach(listener => {
+        listener.off();
     });
 }
