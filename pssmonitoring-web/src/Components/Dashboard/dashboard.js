@@ -216,7 +216,7 @@ class Dashboard extends Component {
         const openDevicePopper = Boolean(deviceButtonElement);
         return (
             <div className={classes.root}>
-                <AppBar position="absolute" className={classNames(classes.appBar, this.state.open && classes.appBarShift)}>
+                <AppBar position="absolute" onClick={this.state.open ? this.handleDrawerClose : null} className={classNames(classes.appBar, this.state.open && classes.appBarShift)}>
 
                     <Toolbar disableGutters={!this.state.open}>
                         <IconButton
@@ -337,7 +337,7 @@ class Dashboard extends Component {
                         </ListItem>
                     </List>
                 </Drawer>
-                <main className={classes.content}>
+                <main className={classes.content} onClick={this.state.open ? this.handleDrawerClose : null} >
                     <div className={classes.toolbar} />
                     {this.renderSelectedComponent()}
                 </main>
