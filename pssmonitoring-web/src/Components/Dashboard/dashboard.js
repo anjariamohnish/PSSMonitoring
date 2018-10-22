@@ -170,7 +170,7 @@ class Dashboard extends Component {
     };
 
     handleDrawerItemClick = (item) => {
-        this.setState({ openDrawer: false, currentMenuItemSelected: item ? item : 'Dashboard' });
+        this.setState({ open: false, openDrawer: false, currentMenuItemSelected: item ? item : 'Dashboard' });
     }
 
     getUserInitials() {
