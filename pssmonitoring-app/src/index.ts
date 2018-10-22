@@ -218,11 +218,16 @@ function logBrowsersHistory() {
                 if (!(_.find(browserHistoryList, { hash: hash(entry) }))) {
                     entry.hash = hash(entry);
                     browserHistoryList.push(entry);
-                    firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(entry, (err: any) => {
+                     firebase.database().ref(DEVICES_NODE).child(DbNodeReference).push().set(entry, (err: any) => {
                         if (err) {
                             logEvent('Database Set Error', err);
                         }
                     })
+                    // firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(entry, (err: any) => {
+                    //     if (err) {
+                    //         logEvent('Database Set Error', err);
+                    //     }
+                    // })
                 }
             });
         })
