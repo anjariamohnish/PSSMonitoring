@@ -83,9 +83,9 @@ const styles = theme => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
-        width: theme.spacing.unit * 7,
+        width: 0,
         [theme.breakpoints.up('sm')]: {
-            width: theme.spacing.unit * 9,
+            width: 0,
         },
     },
     toolbar: {
@@ -282,7 +282,7 @@ class Dashboard extends Component {
                 </AppBar>
 
 
-                <Drawer variant="permanent"
+                <Drawer variant="persistent"
                     classes={{ paper: classNames(classes.drawerPaper, !this.state.open && classes.drawerPaperClose) }} open={this.state.open}>
 
                     <div className={classes.toolbar}>
@@ -291,8 +291,8 @@ class Dashboard extends Component {
                         </IconButton>
                     </div>
 
-                    <Divider />
                     <List>
+                        <Divider />
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Home')}>
                             <ListItemIcon>
                                 <i className="fa fa-home" aria-hidden="true"></i>
