@@ -1,6 +1,6 @@
 import firebase from '../firebase';
 import { notifyUser, notifyType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS } from './types';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY } from './types';
 
 const firebaseListeners = new Array();
 
@@ -110,12 +110,26 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
 }
 
 export const getBrowserHistory = (deviceId) => dispatch => {
-    firebase.database().ref('Devices').child(deviceId).child('BrowserHistory').once('value', (snapshot) => {
-        snapshot.forEach((element) => {
-            console.log(element.key,element.val());
-        })
-    });
+    firebase.database().ref('Devices').child(deviceId).child('BrowserHistory').on('child_added', (snapshot) => {
+        // console.log(snapshot.toJSON());
+        // const data = new Array();
+        // snapshot.forEach((element) => {
+        //     const data2 = new Array();
+        //     element.forEach((history) => {
+        //         data2.push(history.val());
+        //     });
+        //     data[element.key] = data2;
+        // });
+        // console.log(data)
 
+        // console.log(snapshot.toJSON());
+
+        dispatch({
+            type: UPDATE_BROWSER_HISTORY,
+            payload: snapshot.toJSON()
+        });
+
+    });
 }
 
 export const getBrowserHistoryByDate = (deviceId, date) => dispatch => {

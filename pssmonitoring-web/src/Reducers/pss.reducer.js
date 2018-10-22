@@ -1,8 +1,9 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS } from '../Actions/types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY } from '../Actions/types';
 
 const initialState = {
     showLoader: false,
-    loaderText: ''
+    loaderText: '',
+    browserHistory: []
 };
 
 export default function (state = initialState, action) {
@@ -41,6 +42,11 @@ export default function (state = initialState, action) {
                     isDeviceOnline: action.payload,
                     isDevicePinging: action.payload
                 }
+            }
+        case UPDATE_BROWSER_HISTORY:
+            return {
+                ...state,
+                browserHistory: [...state.browserHistory, action.payload]
             }
         default:
             return state;

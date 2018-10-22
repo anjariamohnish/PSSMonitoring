@@ -9,22 +9,42 @@ import './browserhistory.css';
 
 
 import { getBrowserHistory } from '../../Actions/api.actions';
-
+import { toggleLoader } from '../../Actions/pss.actions';
+import { loaderState } from '../../Utils/pss.helper';
 
 class BrowserHistory extends Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            isLoading: true
+        }
     }
 
     componentDidMount() {
+        this.props.toggleLoader(loaderState.ON, 'Loading Browser Histories');
         this.props.getBrowserHistory(this.props.deviceId);
+    }
+
+    componentWillReceiveProps() {
+        if (this.props.browserHistory && this.state.isLoading) {
+            this.setState({ isLoading: false });
+            this.props.toggleLoader(loaderState.OFF);
+        }
+    }
+
+    extractDateTime(timestamp) {
+        const date = new Date(timestamp);
+        const currentTime = date.getHours() + ":"
+            + date.getMinutes() + ":"
+            + date.getSeconds();
+        return currentTime;
     }
 
     render() {
         return (
             <div>
-                <div className="mb-2 row">
+                <div className="mb-5 row">
                     <TextField
                         id="fromDate"
                         label="From"
@@ -47,18 +67,18 @@ class BrowserHistory extends Component {
                     />
 
                     <Button variant="contained" className="filter search-button" size="small" >
-                        <SearchIcon style={{fontSize:20}}/>
+                        <SearchIcon style={{ fontSize: 20 }} />
                         Search
-      </Button>
+                    </Button>
                 </div>
 
-                <div className="card text-center shadow mb-3">
-                    <div className="card-header">
+                <div className="card shadow mb-3">
+                    <div className="card-header text-center">
                         Date
                          </div>
                     <div className="card-body p-0">
                         <table className="table table-bordered mb-0">
-                            <thead>
+                            <thead className="text-center">
                                 <tr>
                                     <th scope="col">#</th>
                                     <th scope="col">Website</th>
@@ -68,13 +88,17 @@ class BrowserHistory extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <th scope="row">1</th>
-                                    <td>Mark</td>
-                                    <td>Otto</td>
-                                    <td>@mdo</td>
-                                    <td>@mdo</td>
-                                </tr>
+                                {this.props.browserHistory.map((history, index) => {
+                                    return (
+                                        <tr key={history.hash}>
+                                            <th scope="row">{index + 1}</th>
+                                            <td>{history.title}</td>
+                                            <td>{history.url}</td>
+                                            <td>{this.extractDateTime(history.utc_time)}</td>
+                                            <td>{history.browser}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -84,4 +108,10 @@ class BrowserHistory extends Component {
     }
 }
 
-export default connect(null, { getBrowserHistory })(BrowserHistory);
+const mapStateToProps = (state) => {
+    return {
+        browserHistory: state.pssReducer.browserHistory,
+    }
+}
+
+export default connect(mapStateToProps, { getBrowserHistory, toggleLoader })(BrowserHistory);
