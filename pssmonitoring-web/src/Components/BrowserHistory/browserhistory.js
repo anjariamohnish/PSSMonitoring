@@ -18,7 +18,7 @@ import Safari from '../../Assets/Image/Safari.svg';
 
 import { getBrowserHistory } from '../../Actions/api.actions';
 import { toggleLoader } from '../../Actions/pss.actions';
-import { loaderState } from '../../Utils/pss.helper';
+import { loaderState, notifyType, notifyUser } from '../../Utils/pss.helper';
 
 class BrowserHistory extends Component {
 
@@ -30,8 +30,8 @@ class BrowserHistory extends Component {
     }
 
     componentDidMount() {
-        this.props.toggleLoader(loaderState.ON, 'Loading Browser Histories');
-        this.props.getBrowserHistory(this.props.deviceId);
+        // this.props.toggleLoader(loaderState.ON, 'Loading Browser Histories');
+        // this.props.getBrowserHistory(this.props.deviceId);
     }
 
     componentWillReceiveProps() {
@@ -50,8 +50,13 @@ class BrowserHistory extends Component {
         return currentTime;
     }
 
-    extractDate(timestamp) {
-        const date = new Date(timestamp);
+    extractDate(timestamp = null) {
+        let date = null;
+        if (timestamp) {
+            date = new Date(timestamp);
+        } else {
+            date = new Date();
+        }
         const currentDate = date.getDate() + "-"
             + (date.getMonth() + 1) + "-"
             + date.getFullYear();
@@ -79,6 +84,20 @@ class BrowserHistory extends Component {
 
     }
 
+    handleDateChange(event) {
+        this.setState({
+            [event.target.id]: event.target.value.split("-").reverse().join("-")
+        });
+    }
+
+    searchByDate() {
+        if (this.state.fromDate && this.state.toDate) {
+
+        } else {
+            notifyUser('From & To Date is Required for Search', notifyType.warning);
+        }
+    }
+
 
     render() {
         let uniqueDates = [];
@@ -98,7 +117,9 @@ class BrowserHistory extends Component {
                         id="fromDate"
                         label="From"
                         type="date"
+                        inputProps={{ min: '2018-10-01', max: `${this.extractDate().split("-").reverse().join("-")}` }}
                         className="col-3 filter"
+                        onChange={this.handleDateChange.bind(this)}
                         defaultValue=""
                         InputLabelProps={{
                             shrink: true,
@@ -108,14 +129,16 @@ class BrowserHistory extends Component {
                         id="toDate"
                         label="To"
                         type="date"
+                        inputProps={{ min: '2018-10-01', max: `${this.extractDate().split("-").reverse().join("-")}` }}
                         className="col-3 filter"
+                        onChange={this.handleDateChange.bind(this)}
                         defaultValue=""
                         InputLabelProps={{
                             shrink: true,
                         }}
                     />
 
-                    <Button variant="contained" className="filter search-button" size="small" >
+                    <Button variant="contained" className="filter search-button" size="small" onClick={this.searchByDate.bind(this)}>
                         <SearchIcon style={{ fontSize: 20 }} />
                         Search
                     </Button>
