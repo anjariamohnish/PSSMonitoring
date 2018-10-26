@@ -96,6 +96,7 @@ const styles = theme => ({
         ...theme.mixins.toolbar,
     },
     content: {
+        overflowX: 'auto',
         flexGrow: 1,
         backgroundColor: theme.palette.background.default,
         padding: theme.spacing.unit * 3,
@@ -337,7 +338,7 @@ class Dashboard extends Component {
                         </ListItem>
                     </List>
                 </Drawer>
-                <main className={classes.content} onClick={this.state.open ? this.handleDrawerClose : null} >
+                <main className={`${classes.content} scroll4`} onClick={this.state.open ? this.handleDrawerClose : null} >
                     <div className={classes.toolbar} />
                     {this.renderSelectedComponent()}
                 </main>

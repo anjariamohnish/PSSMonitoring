@@ -9,3 +9,29 @@
     padding-right: 15px !important;
     margin-top: 1% !important;
 }
+
+.table-container {
+    overflow-x: scroll;
+}
+
+.table-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-container table tbody tr td div:first-of-type {
+    max-height: 70px;
+    overflow: auto;
+}
+
+.table-container table tbody tr td div:first-of-type::-webkit-scrollbar {
+    height: 6px;
+    width: 4px;
+}
+
+.v-align {
+    vertical-align: middle;
+}
+
+.date {
+    letter-spacing: 2px;
+}

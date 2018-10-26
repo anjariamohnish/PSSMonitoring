@@ -1,0 +1,16 @@
+.scroll4::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scroll4::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 20px;
+}
+
+.scroll4::-webkit-scrollbar-track {
+    background: #ddd;
+    border-radius: 20px;
+}
+.cursor{
+    cursor: pointer;
+}
