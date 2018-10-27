@@ -1,12 +1,11 @@
-import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import * as cors from 'cors';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const cors = require("cors");
 const corsHandler = cors({ origin: true });
-
 admin.initializeApp();
-
-export const getHistoryByDates = functions.https.onRequest((request, response) => {
+exports.getHistoryByDates = functions.https.onRequest((request, response) => {
     // tslint:disable-next-line:no-empty
     corsHandler(request, response, () => { });
     if (request.method === 'POST') {
@@ -28,17 +27,17 @@ export const getHistoryByDates = functions.https.onRequest((request, response) =
         });
     }
 });
-
 function extractDate(timestamp = null) {
     let date = null;
     if (timestamp) {
         date = new Date(timestamp);
-    } else {
+    }
+    else {
         date = new Date();
     }
     const currentDate = date.getDate() + "-"
         + (date.getMonth() + 1) + "-"
         + date.getFullYear();
-
     return currentDate;
 }
+//# sourceMappingURL=index.js.map
