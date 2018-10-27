@@ -1,9 +1,10 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY } from '../Actions/types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, CLEAR_HISTORY_FILTER } from '../Actions/types';
 
 const initialState = {
     showLoader: false,
     loaderText: '',
-    browserHistory: []
+    browserHistory: [],
+    savedHistory: []
 };
 
 export default function (state = initialState, action) {
@@ -47,6 +48,20 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 browserHistory: [...state.browserHistory, action.payload]
+            }
+        case SHOW_FILTERED_HISTORY:
+            return {
+                ...state,
+                savedHistory: state.browserHistory,
+                browserHistory: action.payload
+                // savedHistory:action.payload
+
+            }
+        case CLEAR_HISTORY_FILTER:
+            return {
+                ...state,
+                browserHistory: state.savedHistory,
+                savedHistory: []
             }
         default:
             return state;

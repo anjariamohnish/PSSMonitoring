@@ -1,6 +1,6 @@
 import firebase from '../firebase';
 import { notifyUser, notifyType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY } from './types';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY } from './types';
 
 const firebaseListeners = new Array();
 
@@ -132,8 +132,27 @@ export const getBrowserHistory = (deviceId) => dispatch => {
     });
 }
 
-export const getBrowserHistoryByDate = (deviceId, date) => dispatch => {
-
+export const getBrowserHistoryByDate = (deviceId, dates) => dispatch => {
+    return new Promise((resolve, reject) => {
+        fetch('https://us-central1-pss-monitoring.cloudfunctions.net/getHistoryByDates', {
+            method: 'POST',
+            body: JSON.stringify({ id: deviceId, dates: dates })
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.toString() === '') {
+                    reject('No History Found For Specified Dates');
+                } else {
+                    resolve();
+                    dispatch({
+                        type: SHOW_FILTERED_HISTORY,
+                        payload: data
+                    });
+                }
+            }).catch(() => {
+                reject('Sever Error');
+            })
+    });
 }
 
 export const stopAllListeners = () => dispatch => {

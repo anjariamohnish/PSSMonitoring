@@ -35,3 +35,18 @@
 .date {
     letter-spacing: 2px;
 }
+
+.open {
+    transform: rotate(180deg);
+    transition: transform 0.2s linear;
+}
+
+.close {
+    transform: rotate(0deg);
+    transition: transform 0.2s linear;
+}
+
+.arrow {
+    background-color: #dcdcdc;
+    border-radius: 15px;
+}

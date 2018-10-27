@@ -27,3 +27,65 @@ export function notifyUser(message, type, title = null) {
 export function validateUserInputs(input, regex) {
     return regex.test(input);
 }
+
+export function extractDate(timestamp = null) {
+    let date = null;
+    if (timestamp) {
+        date = new Date(timestamp);
+    } else {
+        date = new Date();
+    }
+    const currentDate = date.getDate() + "-"
+        + (date.getMonth() + 1) + "-"
+        + date.getFullYear();
+
+    return currentDate;
+}
+
+export function extractTime(timestamp) {
+    const date = new Date(timestamp);
+    const currentTime = date.getHours() + ":"
+        + date.getMinutes() + ":"
+        + date.getSeconds();
+
+    return currentTime;
+}
+
+export const loadingHints = [
+    'Testing Springs',
+    'Reaching a Safe Distance',
+    'Patching Conics',
+    'Combobulating Discombobulator',
+    'Calculating Ultimate Answer',
+    'Answering Ultimate Question',
+    'Adding Rockets',
+    'Recruiting Volunteers',
+    'Locating The Lost Ark',
+    'Inventing Witty Loading Hints',
+    'Untangling Scotch Tape',
+    'Biding Time',
+    'Cleaning Air Filters',
+    'Sacrificing Efficiency',
+    'Herding Llamas',
+    'Adding More Sauce',
+    'Lithobraking',
+    'Fetching Rover',
+    'Hoarding Snacks',
+    'Rescuing Bill',
+    'Repacking Parachute',
+    'Charging Batteries',
+    'Taste-Testing Snacks',
+    'Strapping Lasers to the Sun',
+    'Motivating Volunteers',
+    'Separating Eggs',
+    'Reading Recipe Again',
+    'Whipping to Soft Peaks',
+    'Checking For Umami',
+    'Seasoning To Taste',
+    'Setting Up Flannel Graph',
+    'Running Amok',
+    'Herding Cats',
+    'Finding Valuable Cash Prizes',
+    'Switching To Decaf',
+    'Cleaning Internet Tubes'
+]
