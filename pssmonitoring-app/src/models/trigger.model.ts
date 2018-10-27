@@ -6,5 +6,5 @@ export class Trigger {
     Message!: string;
     Timestamp!: number;
     TriggerStatus!: TriggerStatus;
-    User!: { name: string, email: string };
+    User!: { name: string, email: string, uid: string };
 }
