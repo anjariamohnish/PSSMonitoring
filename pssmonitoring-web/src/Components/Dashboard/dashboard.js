@@ -19,7 +19,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Screenshot from '@material-ui/icons/AddToQueue';
-import WebCam from '@material-ui/icons/LinkedCamera';
+import WebCamIcon from '@material-ui/icons/LinkedCamera';
 import Settings from '@material-ui/icons/Settings';
 import History from '@material-ui/icons/History';
 import deepOrange from '@material-ui/core/colors/deepOrange';
@@ -30,6 +30,7 @@ import remoteControl from '../../Assets/Image/remotecontrol.png';
 import { signOutUser, trackDeviceStatus, stopAllListeners } from '../../Actions/api.actions';
 import { notifyUser, notifyType } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
+import Webcam from '../Webcam/webcam';
 
 const drawerWidth = 240;
 
@@ -193,20 +194,24 @@ class Dashboard extends Component {
     }
 
     renderSelectedComponent() {
-        switch (this.state.currentMenuItemSelected) {
-            // case 'Home':
-            //     return (<div>Home</div>);
-            case 'Browser History':
-                return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
-            // case 'Webcam':
-            //     return (<Webcam />);
-            // case 'Screenshot':
-            //     return (<Screenshot />);
-            // case 'RemoteControl':
-            //     return (<RemoteControl />);
-            // case 'Settings':
-            //     return (<Settings />);
-            default:
+        if (this.props.deviceInfo) {
+            switch (this.state.currentMenuItemSelected) {
+                // case 'Home':
+                //     return (<div>Home</div>);
+                case 'Browser History':
+                    return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
+                case 'Webcam':
+                    return (<Webcam deviceId={this.props.deviceInfo.deviceId} />);
+                // case 'Screenshot':
+                //     return (<Screenshot />);
+                // case 'RemoteControl':
+                //     return (<RemoteControl />);
+                // case 'Settings':
+                //     return (<Settings />);
+                default:
+            }
+        } else {
+            this.props.history.push('/login');
         }
     }
 
@@ -310,7 +315,7 @@ class Dashboard extends Component {
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Webcam')}>
                             <ListItemIcon>
-                                <WebCam />
+                                <WebCamIcon />
                             </ListItemIcon>
                             <ListItemText primary="Webcam" />
                         </ListItem>

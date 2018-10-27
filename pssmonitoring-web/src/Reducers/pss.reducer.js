@@ -25,11 +25,7 @@ export default function (state = initialState, action) {
                 userInfo: action.payload
             }
         case SIGNOUT_USER:
-            return {
-                ...state,
-                userInfo: null,
-                deviceInfo: null
-            }
+            return initialState
         case SET_DEVICE_DATA:
             return {
                 ...state,

@@ -1,6 +1,6 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY } from './types';
+import { notifyUser, notifyType, TriggerStatus, TriggerType } from '../Utils/pss.helper';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER } from './types';
 
 const firebaseListeners = new Array();
 
@@ -152,6 +152,23 @@ export const getBrowserHistoryByDate = (deviceId, dates) => dispatch => {
             }).catch(() => {
                 reject('Sever Error');
             })
+    });
+}
+
+export const capturePicture = (deviceId, trigger) => dispatch => {
+    return new Promise((resolve, reject) => {
+        const key = firebase.database().ref().push().key;
+        firebase.database().ref('Devices').child(deviceId).child('Triggers').child(key).set(trigger)
+            .then(() => {
+                dispatch({
+                    type: ADD_TRIGGER,
+                    payload: key
+                });
+                resolve();
+            })
+            .catch(() => {
+                reject();
+            });
     });
 }
 

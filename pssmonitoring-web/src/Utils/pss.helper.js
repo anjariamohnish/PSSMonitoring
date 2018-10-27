@@ -2,6 +2,8 @@ import { NotificationManager } from 'react-notifications';
 
 export const notifyType = Object.freeze({ 'info': 1, 'success': 2, 'warning': 3, 'error': 4 });
 export const loaderState = Object.freeze({ 'ON': true, 'OFF': false });
+export const TriggerStatus = Object.freeze({ 'SUCCESS': 0, 'FAILED': 1, 'PENDING': 2, 'STOPPED': 3 });
+export const TriggerType = Object.freeze({ 'SHUTDOWN': 0, 'RESTART': 1, 'LOCK': 2, 'SIGNOUT': 3, 'SHOW_MESSAGE': 4, 'TAKEPICTURE': 5, 'SCREENSHOT': 6 });
 // eslint-disable-next-line
 export const emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
 
@@ -49,6 +51,10 @@ export function extractTime(timestamp) {
         + date.getSeconds();
 
     return currentTime;
+}
+
+export function createTrigger(triggerType, userInfo) {
+    return { Timestamp: Date.now(), TriggerStatus: TriggerStatus.PENDING, TriggerType: triggerType, User: userInfo };
 }
 
 export const loadingHints = [
