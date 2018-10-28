@@ -27,9 +27,9 @@ import deepOrange from '@material-ui/core/colors/deepOrange';
 import './dashboard.css';
 import remoteControl from '../../Assets/Image/remotecontrol.png';
 
-import { removeTrigger, clearOldTabState } from '../../Actions/pss.actions';
+import { removeTrigger, clearOldTabState, toggleLoader } from '../../Actions/pss.actions';
 import { signOutUser, trackDeviceStatus, enableTriggerListener, stopAllListeners } from '../../Actions/api.actions';
-import { notifyUser, notifyType, TriggerStatus, createMessage } from '../../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, createMessage, loaderState } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
 import Webcam from '../Webcam/webcam';
 
@@ -137,15 +137,17 @@ class Dashboard extends Component {
             deviceButtonElement: null,
             currentMenuItemSelected: 'Home'
         };
-        this.props.userInfo ? () => {
-            this.props.trackDeviceStatus(this.props.deviceInfo.deviceId);
-            this.props.enableTriggerListener(this.props.deviceInfo.deviceId, this.props.userInfo);
-        } : this.props.history.push('/login');;
+        this.props.userInfo ? this.initializeListeners() : this.props.history.push('/login');;
 
     }
 
     componentWillUnmount() {
         this.props.stopAllListeners();
+    }
+
+    initializeListeners() {
+        this.props.trackDeviceStatus(this.props.deviceInfo.deviceId);
+        this.props.enableTriggerListener(this.props.deviceInfo.deviceId, this.props.userInfo);
     }
 
     handleDrawerOpen = () => {
@@ -177,10 +179,14 @@ class Dashboard extends Component {
     };
 
     handleDrawerItemClick = (item) => {
-        this.props.clearOldTabState(this.state.currentMenuItemSelected)
-            .then(() => {
-                this.setState({ open: false, openDrawer: false, currentMenuItemSelected: item });
-            })
+        if (item !== this.state.currentMenuItemSelected) {
+            this.props.clearOldTabState(this.state.currentMenuItemSelected)
+                .then(() => {
+                    this.setState({ open: false, openDrawer: false, currentMenuItemSelected: item });
+                })
+        } else {
+            this.handleDrawerClose();
+        }
     }
 
     getUserInitials() {
@@ -237,11 +243,13 @@ class Dashboard extends Component {
                         case TriggerStatus.SUCCESS:
                             notifyUser(createMessage(data.TriggerType, data.TriggerStatus), notifyType.success);
                             this.props.removeTrigger(key);
+                            this.props.toggleLoader(loaderState.OFF);
                             break;
                         case TriggerStatus.FAILED:
                         case TriggerStatus.STOPPED:
                             notifyUser(createMessage(data.TriggerType, data.TriggerStatus), notifyType.error);
                             this.props.removeTrigger(key);
+                            this.props.toggleLoader(loaderState.OFF);
                             break;
                         default:
                     }
@@ -392,5 +400,5 @@ const mapStateToProps = (state) => {
 
 export default compose(
     withStyles(styles, { withTheme: true }),
-    connect(mapStateToProps, { signOutUser, trackDeviceStatus, enableTriggerListener, removeTrigger, clearOldTabState, stopAllListeners })
+    connect(mapStateToProps, { signOutUser, trackDeviceStatus, enableTriggerListener, removeTrigger, clearOldTabState, stopAllListeners, toggleLoader })
 )(Dashboard);

@@ -10,7 +10,6 @@ import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
 import Snackbar from '@material-ui/core/Snackbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import $ from 'jquery';
@@ -120,9 +119,8 @@ class BrowserHistory extends Component {
             this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
             const startDate = new Date(this.state.fromDate);
             const stopDate = new Date(this.state.toDate);
-            const
-                dateList = new Array(),
-                date = new Date(startDate);
+            const dateList = [];
+            const date = new Date(startDate);
             while (date <= stopDate) {
                 const newDate = new Date(date);
                 dateList.push(newDate.getDate() + "-"
@@ -261,7 +259,7 @@ class BrowserHistory extends Component {
                         this.state.hideChip ?
                             null :
                             <Chip color="primary"
-                                icon={<img src={FilterIcon} />}
+                                icon={<img src={FilterIcon} alt="filter-icon" />}
                                 onDelete={this.handleDelete.bind(this)}
                                 label={`${this.state.fromDate.split("-").reverse().join("-")} - ${this.state.toDate.split("-").reverse().join("-")}`}
                                 hidden={this.state.hideChip} />
@@ -309,6 +307,8 @@ class BrowserHistory extends Component {
                                                                     <td className="v-align text-center"><div className="scroll4">{this.getBrowserIcon(history.browser.replace(/\s/g, ''))}</div></td>
                                                                 </tr>
                                                             );
+                                                        } else {
+                                                            return null;
                                                         }
                                                     })}
                                                 </tbody>

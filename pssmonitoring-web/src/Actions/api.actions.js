@@ -1,8 +1,11 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType, TriggerStatus, TriggerType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, RESET_HISTORY_TAB_STATE } from './types';
+import { notifyUser, notifyType, TriggerStatus } from '../Utils/pss.helper';
+import {
+    SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED
+} from './types';
 
-const firebaseListeners = new Array();
+const firebaseListeners =[];
 
 export const loginUser = (credentials) => dispatch => {
     return new Promise((resolve, reject) => {
@@ -83,8 +86,8 @@ export const signOutUser = () => dispatch => {
 }
 
 export const trackDeviceStatus = (deviceId) => dispatch => {
-    const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
     const deviceStatusRef = firebase.database().ref('Devices').child(deviceId).child('DeviceStatus');
+    // const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
     // pingRef.on('value', (snapshot) => {
     //     if (snapshot.val() === 1) {
     //         pingRef.set(0);

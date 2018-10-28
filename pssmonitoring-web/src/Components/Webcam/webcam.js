@@ -12,7 +12,7 @@ import './webcam.css';
 
 import webcamIcon from '../../Assets/Image/webcam.svg';
 
-import { toggleLoader } from '../../Actions/pss.actions';
+import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
 import { capturePicture } from '../../Actions/api.actions';
 import { notifyUser, notifyType, loaderState, loadingHints, createTrigger, TriggerType } from '../../Utils/pss.helper';
 
@@ -53,14 +53,16 @@ class Webcam extends Component {
                 notifyUser('Successfully Sent Request For Webcam Picture', notifyType.success);
 
                 const loaderInterval = setInterval(() => {
-                    this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
+                    this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
                 }, 1500);
 
                 setTimeout(() => {
                     clearInterval(loaderInterval);
-                    notifyUser('Will notify you once picture is loaded', notifyType.success);
-                    this.props.toggleLoader(loaderState.OFF);
-                }, 10000);
+                    if (this.props.showLoader) {
+                        this.props.toggleLoader(loaderState.OFF);
+                        notifyUser('Will notify you once picture is loaded', notifyType.success);
+                    }
+                }, 15000);
             })
             .catch(() => {
                 notifyUser('Something Went Wrong', notifyType.error);
@@ -110,9 +112,10 @@ class Webcam extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
+        showLoader: state.pssReducer.showLoader
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, capturePicture })(Webcam);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, capturePicture })(Webcam);
 
