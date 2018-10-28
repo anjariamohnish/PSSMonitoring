@@ -1,10 +1,18 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withStyles } from '@material-ui/core/styles';
+import compose from 'recompose/compose';
 import SearchIcon from '@material-ui/icons/SearchOutlined'
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Chip from '@material-ui/core/Chip';
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
+import Snackbar from '@material-ui/core/Snackbar';
+import Tooltip from '@material-ui/core/Tooltip';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import $ from 'jquery';
 
 import './browserhistory.css';
@@ -21,14 +29,28 @@ import { getBrowserHistory, getBrowserHistoryByDate } from '../../Actions/api.ac
 import { toggleLoader, clearFilteredHistory } from '../../Actions/pss.actions';
 import { loaderState, notifyType, notifyUser, extractDate, extractTime, loadingHints } from '../../Utils/pss.helper';
 
+
+const styles = theme => ({
+    customWidth: {
+        maxWidth: 200,
+        wordWrap: 'break-word'
+    }
+});
+
 class BrowserHistory extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             isLoading: true,
-            hideChip: true
+            hideChip: true,
+            openSnackBar: false,
+            openDialog: false,
+            copyText: ''
         }
+        this.onDoubleClick = this.onDoubleClick.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
+        this.onTouchEnd = this.onTouchEnd.bind(this);
     }
 
     componentDidMount() {
@@ -129,7 +151,43 @@ class BrowserHistory extends Component {
         }
     }
 
+    onDoubleClick(event) {
+        this.setState({
+            openSnackBar: true
+        });
+        const dummy = document.createElement("input");
+        document.body.appendChild(dummy);
+        dummy.setAttribute('id', 'dummy');
+        dummy.setAttribute('value', event.target.textContent);
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+    }
+
+    onTouchStart(event) {
+        this.setState({ copyText: event.target.textContent })
+        this.touchPressTimer = setTimeout(() => {
+            this.setState({
+                openDialog: true
+            })
+        }, 1000)
+    }
+
+    onTouchEnd(event) {
+        clearTimeout(this.touchPressTimer);
+    }
+
+    onSnackbarClose = () => {
+        this.setState({
+            openSnackBar: false
+        })
+    }
+    handleDialogClose = () => {
+        this.setState({ openDialog: false });
+    }
+
     render() {
+        const { classes } = this.props;
         this.uniqueDates = [];
         if (this.props.browserHistory) {
             const dates = [];
@@ -142,6 +200,31 @@ class BrowserHistory extends Component {
         }
         return (
             <div>
+                <Dialog
+                    open={this.state.openDialog}
+                    onClose={this.handleDialogClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogContent>
+                        <DialogContentText style={{ wordWrap: 'break-word' }} id="alert-dialog-description">
+                            {this.state.copyText}
+                        </DialogContentText>
+                    </DialogContent>
+                </Dialog>
+                <Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    open={this.state.openSnackBar}
+                    onClose={this.onSnackbarClose}
+                    autoHideDuration={3000}
+                    ContentProps={{
+                        'aria-describedby': 'message-id',
+                    }}
+                    message={<span id="message-id">Copied !</span>}
+                />
                 <div className={"row " + (this.state.hideChip ? 'mb-5' : 'mb-3')}>
                     <TextField
                         id="fromDate"
@@ -216,7 +299,12 @@ class BrowserHistory extends Component {
                                                                 <tr key={history.hash}>
                                                                     <th scope="row" className="text-center v-align">{++count}</th>
                                                                     <td className="v-align"><div className="scroll4">{history.title}</div></td>
-                                                                    <td className="v-align"><div className="scroll4">{history.url}</div></td>
+
+                                                                    <td className="v-align url">
+                                                                        <Tooltip classes={{ tooltip: classes.customWidth }} disableFocusListener disableTouchListener title={history.url}>
+                                                                            <div className="scroll4" onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} onDoubleClick={this.onDoubleClick}>{history.url}</div>
+                                                                        </Tooltip>
+                                                                    </td>
                                                                     <td className="v-align text-center"><div className="scroll4">{extractTime(history.utc_time)}</div></td>
                                                                     <td className="v-align text-center"><div className="scroll4">{this.getBrowserIcon(history.browser.replace(/\s/g, ''))}</div></td>
                                                                 </tr>
@@ -243,4 +331,7 @@ const mapStateToProps = (state) => {
     }
 }
 
-export default connect(mapStateToProps, { getBrowserHistory, toggleLoader, getBrowserHistoryByDate, clearFilteredHistory })(BrowserHistory);
+export default compose(
+    withStyles(styles, { withTheme: false }),
+    connect(mapStateToProps, { getBrowserHistory, toggleLoader, getBrowserHistoryByDate, clearFilteredHistory })
+)(BrowserHistory);

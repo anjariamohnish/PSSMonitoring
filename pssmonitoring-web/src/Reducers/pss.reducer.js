@@ -1,7 +1,7 @@
 import {
     TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA,
     CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY,
-    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER
+    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE
 } from '../Actions/types';
 
 const initialState = {
@@ -87,6 +87,12 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 triggers: state.triggers
+            }
+        case RESET_HISTORY_TAB_STATE:
+            return {
+                ...state,
+                browserHistory: [],
+                savedHistory: [],
             }
         default:
             return state;

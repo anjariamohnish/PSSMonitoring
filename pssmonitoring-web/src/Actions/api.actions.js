@@ -1,6 +1,6 @@
 import firebase from '../firebase';
 import { notifyUser, notifyType, TriggerStatus, TriggerType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED } from './types';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, RESET_HISTORY_TAB_STATE } from './types';
 
 const firebaseListeners = new Array();
 

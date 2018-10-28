@@ -1,4 +1,4 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER } from './types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE } from './types';
 
 
 export const toggleLoader = (loaderState, loaderText = null) => dispatch => {
@@ -32,4 +32,31 @@ export const clearFilteredHistory = () => dispatch => {
     dispatch({
         type: CLEAR_HISTORY_FILTER
     })
+}
+
+export const clearOldTabState = (tab) => dispatch => {
+    return new Promise((resolve, reject) => {
+        switch (tab) {
+            case 'Home':
+                // do nothing
+                break;
+            case 'Browser History':
+                dispatch({ type: RESET_HISTORY_TAB_STATE })
+                break;
+            case 'Webcam':
+                // do nothing
+                break;
+            case 'Screenshot':
+                // do nothing
+                break;
+            case 'RemoteControl':
+                // do nothing
+                break;
+            case 'Settings':
+                // do nothing
+                break;
+            default:
+        }
+        resolve();
+    });
 }

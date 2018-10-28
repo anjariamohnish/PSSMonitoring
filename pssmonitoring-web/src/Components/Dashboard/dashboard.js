@@ -27,7 +27,7 @@ import deepOrange from '@material-ui/core/colors/deepOrange';
 import './dashboard.css';
 import remoteControl from '../../Assets/Image/remotecontrol.png';
 
-import { removeTrigger } from '../../Actions/pss.actions';
+import { removeTrigger, clearOldTabState } from '../../Actions/pss.actions';
 import { signOutUser, trackDeviceStatus, enableTriggerListener, stopAllListeners } from '../../Actions/api.actions';
 import { notifyUser, notifyType, TriggerStatus, createMessage } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
@@ -177,7 +177,10 @@ class Dashboard extends Component {
     };
 
     handleDrawerItemClick = (item) => {
-        this.setState({ open: false, openDrawer: false, currentMenuItemSelected: item ? item : 'Dashboard' });
+        this.props.clearOldTabState(this.state.currentMenuItemSelected)
+            .then(() => {
+                this.setState({ open: false, openDrawer: false, currentMenuItemSelected: item });
+            })
     }
 
     getUserInitials() {
@@ -389,5 +392,5 @@ const mapStateToProps = (state) => {
 
 export default compose(
     withStyles(styles, { withTheme: true }),
-    connect(mapStateToProps, { signOutUser, trackDeviceStatus, enableTriggerListener, removeTrigger, stopAllListeners })
+    connect(mapStateToProps, { signOutUser, trackDeviceStatus, enableTriggerListener, removeTrigger, clearOldTabState, stopAllListeners })
 )(Dashboard);

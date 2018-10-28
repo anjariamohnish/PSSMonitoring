@@ -28,8 +28,15 @@
     width: 4px;
 }
 
+.url div{
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 40vw;
+}
+
 .v-align {
-    vertical-align: middle;
+    vertical-align: middle !important;
 }
 
 .date {
