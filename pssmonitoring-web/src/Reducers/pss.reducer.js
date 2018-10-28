@@ -1,10 +1,16 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, CLEAR_HISTORY_FILTER } from '../Actions/types';
+import {
+    TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA,
+    CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY,
+    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER
+} from '../Actions/types';
 
 const initialState = {
     showLoader: false,
     loaderText: '',
     browserHistory: [],
-    savedHistory: []
+    savedHistory: [],
+    triggers: [],
+    isTriggerLoaded: false
 };
 
 export default function (state = initialState, action) {
@@ -50,7 +56,6 @@ export default function (state = initialState, action) {
                 ...state,
                 savedHistory: state.browserHistory,
                 browserHistory: action.payload
-                // savedHistory:action.payload
 
             }
         case CLEAR_HISTORY_FILTER:
@@ -58,6 +63,30 @@ export default function (state = initialState, action) {
                 ...state,
                 browserHistory: state.savedHistory,
                 savedHistory: []
+            }
+        case TRIGGER_LOADED:
+            return {
+                ...state,
+                isTriggerLoaded: true
+            }
+        case ADD_TRIGGER:
+            return {
+                ...state,
+                triggers: { ...state.triggers, [action.payload.key]: action.payload.data }
+            }
+        case UPDATE_TRIGGER:
+            return {
+                ...state,
+                triggers: {
+                    ...state.triggers,
+                    [action.payload.key]: action.payload.data
+                }
+            }
+        case REMOVE_TRIGGER:
+            delete state.triggers[action.payload];
+            return {
+                ...state,
+                triggers: state.triggers
             }
         default:
             return state;

@@ -27,8 +27,9 @@ import deepOrange from '@material-ui/core/colors/deepOrange';
 import './dashboard.css';
 import remoteControl from '../../Assets/Image/remotecontrol.png';
 
-import { signOutUser, trackDeviceStatus, stopAllListeners } from '../../Actions/api.actions';
-import { notifyUser, notifyType } from '../../Utils/pss.helper';
+import { removeTrigger } from '../../Actions/pss.actions';
+import { signOutUser, trackDeviceStatus, enableTriggerListener, stopAllListeners } from '../../Actions/api.actions';
+import { notifyUser, notifyType, TriggerStatus, createMessage } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
 import Webcam from '../Webcam/webcam';
 
@@ -136,7 +137,11 @@ class Dashboard extends Component {
             deviceButtonElement: null,
             currentMenuItemSelected: 'Home'
         };
-        this.props.userInfo ? this.props.trackDeviceStatus(this.props.deviceInfo.deviceId) : this.props.history.push('/login');
+        this.props.userInfo ? () => {
+            this.props.trackDeviceStatus(this.props.deviceInfo.deviceId);
+            this.props.enableTriggerListener(this.props.deviceInfo.deviceId, this.props.userInfo);
+        } : this.props.history.push('/login');;
+
     }
 
     componentWillUnmount() {
@@ -220,6 +225,27 @@ class Dashboard extends Component {
         const { profileButtonElement, deviceButtonElement } = this.state;
         const openProfilePopper = Boolean(profileButtonElement);
         const openDevicePopper = Boolean(deviceButtonElement);
+
+        if (this.props.triggers && this.props.isTriggerLoaded) {
+            Object.entries(this.props.triggers).forEach(
+                ([key, data]) => {
+                    // console.log(key, data)
+                    switch (data.TriggerStatus) {
+                        case TriggerStatus.SUCCESS:
+                            notifyUser(createMessage(data.TriggerType, data.TriggerStatus), notifyType.success);
+                            this.props.removeTrigger(key);
+                            break;
+                        case TriggerStatus.FAILED:
+                        case TriggerStatus.STOPPED:
+                            notifyUser(createMessage(data.TriggerType, data.TriggerStatus), notifyType.error);
+                            this.props.removeTrigger(key);
+                            break;
+                        default:
+                    }
+                }
+            );
+        }
+
         return (
             <div className={classes.root}>
                 <AppBar position="absolute" onClick={this.state.open ? this.handleDrawerClose : null} className={classNames(classes.appBar, this.state.open && classes.appBarShift)}>
@@ -355,11 +381,13 @@ class Dashboard extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
-        deviceInfo: state.pssReducer.deviceInfo
+        deviceInfo: state.pssReducer.deviceInfo,
+        triggers: state.pssReducer.triggers,
+        isTriggerLoaded: state.pssReducer.isTriggerLoaded
     }
 }
 
 export default compose(
     withStyles(styles, { withTheme: true }),
-    connect(mapStateToProps, { signOutUser, trackDeviceStatus, stopAllListeners })
+    connect(mapStateToProps, { signOutUser, trackDeviceStatus, enableTriggerListener, removeTrigger, stopAllListeners })
 )(Dashboard);

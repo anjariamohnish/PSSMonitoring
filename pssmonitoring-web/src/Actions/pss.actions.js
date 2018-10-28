@@ -1,4 +1,4 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER } from './types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER } from './types';
 
 
 export const toggleLoader = (loaderState, loaderText = null) => dispatch => {
@@ -18,6 +18,13 @@ export const changeLoaderText = (loaderText) => dispatch => {
     dispatch({
         type: CHANGE_LOADER_TEXT,
         payload: loaderText
+    })
+}
+
+export const removeTrigger = (key) => dispatch => {
+    dispatch({
+        type: REMOVE_TRIGGER,
+        payload: key
     })
 }
 

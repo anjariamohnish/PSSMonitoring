@@ -50,14 +50,22 @@ class Webcam extends Component {
         this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
         this.props.capturePicture(this.props.deviceId, createTrigger(TriggerType.TAKEPICTURE, this.props.userInfo))
             .then(() => {
-                // change messages loading till picture comes
+                notifyUser('Successfully Sent Request For Webcam Picture', notifyType.success);
+
+                const loaderInterval = setInterval(() => {
+                    this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
+                }, 1500);
+
+                setTimeout(() => {
+                    clearInterval(loaderInterval);
+                    notifyUser('Will notify you once picture is loaded', notifyType.success);
+                    this.props.toggleLoader(loaderState.OFF);
+                }, 10000);
             })
             .catch(() => {
                 notifyUser('Something Went Wrong', notifyType.error);
             });
     }
-
-
 
     render() {
         return (

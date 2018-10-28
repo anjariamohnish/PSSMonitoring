@@ -1,6 +1,6 @@
 import firebase from '../firebase';
 import { notifyUser, notifyType, TriggerStatus, TriggerType } from '../Utils/pss.helper';
-import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER } from './types';
+import { SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED } from './types';
 
 const firebaseListeners = new Array();
 
@@ -83,7 +83,6 @@ export const signOutUser = () => dispatch => {
 }
 
 export const trackDeviceStatus = (deviceId) => dispatch => {
-    console.log(deviceId);
     const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
     const deviceStatusRef = firebase.database().ref('Devices').child(deviceId).child('DeviceStatus');
     // pingRef.on('value', (snapshot) => {
@@ -93,7 +92,6 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
     // });
 
     deviceStatusRef.on('value', (snapshot) => {
-        console.log(snapshot.val());
         if (snapshot.val() === 1) {
             dispatch({
                 type: CHANGE_DEVICE_STATUS,
@@ -162,7 +160,7 @@ export const capturePicture = (deviceId, trigger) => dispatch => {
             .then(() => {
                 dispatch({
                     type: ADD_TRIGGER,
-                    payload: key
+                    payload: { key: key, data: trigger }
                 });
                 resolve();
             })
@@ -170,6 +168,37 @@ export const capturePicture = (deviceId, trigger) => dispatch => {
                 reject();
             });
     });
+}
+
+export const enableTriggerListener = (deviceId, userInfo) => dispatch => {
+    const triggerRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid);
+
+    //load triggers once:
+    triggerRef.once('value', (snapshots) => {
+        let counter = 0;
+        snapshots.forEach((snapshot) => {
+            counter++;
+            if (snapshot.val().TriggerStatus === TriggerStatus.PENDING) {
+                dispatch({
+                    type: ADD_TRIGGER,
+                    payload: { key: snapshot.key, data: snapshot.val() }
+                })
+            }
+            if (snapshots.numChildren() === counter) {
+                dispatch({
+                    type: TRIGGER_LOADED
+                })
+            }
+        });
+    });
+
+    triggerRef.on('child_changed', (snapshot) => {
+        dispatch({
+            type: UPDATE_TRIGGER,
+            payload: { key: snapshot.key, data: snapshot.val() }
+        })
+    });
+    firebaseListeners.push(triggerRef);
 }
 
 export const stopAllListeners = () => dispatch => {

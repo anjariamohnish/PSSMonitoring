@@ -57,6 +57,37 @@ export function createTrigger(triggerType, userInfo) {
     return { Timestamp: Date.now(), TriggerStatus: TriggerStatus.PENDING, TriggerType: triggerType, User: userInfo };
 }
 
+export function createMessage(triggerType, triggerStatus) {
+    let status = '';
+    switch (triggerStatus) {
+        case TriggerStatus.SUCCESS:
+            status = 'Successful';
+            break;
+        case TriggerStatus.STOPPED:
+            status = 'Stopped';
+            break;
+        case TriggerStatus.FAILED:
+            status = 'Failed';
+            break;
+        default:
+    }
+    switch (triggerType) {
+        case TriggerType.TAKEPICTURE:
+            return 'Capture Webcam Image was ' + status;
+        case TriggerType.SHUTDOWN:
+            return 'Shutdown Process was ' + status
+        case TriggerType.SIGNOUT:
+            return 'Signout Process was ' + status
+        case TriggerType.SCREENSHOT:
+            return 'Capture Screenshot was ' + status
+        case TriggerType.RESTART:
+            return 'Restart Process was ' + status
+        case TriggerType.SHOW_MESSAGE:
+            return 'Message was shown' + status
+        default:
+    }
+}
+
 export const loadingHints = [
     'Testing Springs',
     'Reaching a Safe Distance',

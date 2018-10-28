@@ -1,0 +1,15 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "Devices": {
+      "$devid": {
+        "Triggers": {
+          ".indexOn": [
+            "TriggerStatus","User/uid"
+          ]
+        }
+      }
+    }
+  }
+}
