@@ -1,7 +1,7 @@
 import {
     TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA,
     CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY,
-    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE
+    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE
 } from '../Actions/types';
 
 const initialState = {
@@ -10,7 +10,8 @@ const initialState = {
     browserHistory: [],
     savedHistory: [],
     triggers: [],
-    isTriggerLoaded: false
+    isTriggerLoaded: false,
+    webcamImages: []
 };
 
 export default function (state = initialState, action) {
@@ -93,6 +94,16 @@ export default function (state = initialState, action) {
                 ...state,
                 browserHistory: [],
                 savedHistory: [],
+            }
+        case ADD_WEBCAM_IMAGE:
+            return {
+                ...state,
+                webcamImages: [...state.webcamImages, action.payload]
+            }
+        case RESET_WEBCAM_TAB_STATE:
+            return {
+                ...state,
+                webcamImages: []
             }
         default:
             return state;

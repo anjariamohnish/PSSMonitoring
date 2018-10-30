@@ -1,4 +1,4 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE } from './types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, RESET_WEBCAM_TAB_STATE } from './types';
 
 
 export const toggleLoader = (loaderState, loaderText = null) => dispatch => {
@@ -44,7 +44,7 @@ export const clearOldTabState = (tab) => dispatch => {
                 dispatch({ type: RESET_HISTORY_TAB_STATE })
                 break;
             case 'Webcam':
-                // do nothing
+                dispatch({ type: RESET_WEBCAM_TAB_STATE })
                 break;
             case 'Screenshot':
                 // do nothing

@@ -1,11 +1,11 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType, TriggerStatus } from '../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
-    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE
 } from './types';
 
-const firebaseListeners =[];
+const firebaseListeners = [];
 
 export const loginUser = (credentials) => dispatch => {
     return new Promise((resolve, reject) => {
@@ -202,6 +202,34 @@ export const enableTriggerListener = (deviceId, userInfo) => dispatch => {
         })
     });
     firebaseListeners.push(triggerRef);
+}
+
+export const getWebcamImages = (deviceId, userInfo) => dispatch => {
+    const webcamImgRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
+        .on('value', (snapshots) => {
+            let keys = [];
+            let timestamps = [];
+            snapshots.forEach((snapshot) => {
+                if (snapshot.val().TriggerType === TriggerType.TAKEPICTURE && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
+                    keys.push(snapshot.key);
+                    timestamps[snapshot.key] = snapshot.val().Timestamp;
+                }
+            });
+            if (keys && keys.length > 0)
+                firebase.database().ref('Devices').child(deviceId).child('Webcam').child(extractDate())
+                    .once('value', (snapshots) => {
+                        snapshots.forEach((snapshot) => {
+                            if (keys.includes(snapshot.val().key)) {
+                                dispatch({
+                                    type: ADD_WEBCAM_IMAGE,
+                                    payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
+                                })
+                            }
+                        })
+                    })
+        });
+
+    firebaseListeners.push(webcamImgRef);
 }
 
 export const stopAllListeners = () => dispatch => {
