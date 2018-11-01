@@ -20,6 +20,7 @@ import { Trigger } from './models/trigger.model';
 import HashMap from 'hashmap';
 import { TriggerStatus } from './enums/triggerStatus.enum';
 import WatchJS from 'melanke-watchjs';
+import { LockStatus } from './enums/deviceLock.enum';
 
 
 const watch = WatchJS.watch;
@@ -30,6 +31,8 @@ const setIntervals = new Array<NodeJS.Timer>();
 let triggerRef: firebase.database.Query;
 let connectedRef: firebase.database.Query;
 let pingRef: firebase.database.Reference;
+let lockRefer: firebase.database.Reference;
+
 
 export const state = {
     email: '',
@@ -59,13 +62,16 @@ function startUp() {
         state.password = password;
         state.uuid = sysinfo.uuid;
         loginMachine({ email: email, password: password })
-            .then(() => {
+            .then((isLocked) => {
                 // start liveupdates // send mail
-                liveMachineStats();
-                logBrowsersHistory();
-                initializeListeners();
-                logEvent('Starting Up', 'Ready');
-                console.log('already regis starting live');
+                initializeLockListner();
+                if (!isLocked) {
+                    liveMachineStats();
+                    logBrowsersHistory();
+                    initializeListeners();
+                    logEvent('Starting Up', 'Ready');
+                    console.log('already regis starting live');
+                }
             })
             .catch((err) => {
                 const NO_USER_FOUND = 'auth/user-not-found';
@@ -186,12 +192,22 @@ function loginMachine(credentials: any): Promise<any> {
         firebase.auth().signInWithEmailAndPassword(credentials.email, credentials.password)
             .then(() => {
                 changeDeviceState(DeviceStatus.ON);
-                resolve();
+                resolve(checkLock());
             })
             .catch((err: any) => {
                 rejects(err);
             })
     });
+}
+
+function checkLock(): boolean {
+    const lockRef = firebase.auth().currentUser!.displayName + '/Lock';
+    let status = false;
+    firebase.database().ref(DEVICES_NODE).child(lockRef)
+        .once('value', (snapshot) => {
+            status = snapshot.val().status === LockStatus.LOCK;
+        })
+    return status;
 }
 
 function readableBytes(bytes: any): any {
@@ -237,7 +253,7 @@ function logBrowsersHistory() {
 
 function takeScreenshot(key: string) {
     screenshot().then((img: any) => {
-        const DbNodeReference = state.uuid + '/ScreenShots';
+        const DbNodeReference = state.uuid + '/Screenshots';
         let currentScreenshot = new ScreenShot();
         const currentDateTime = getCurrentDateTime();
         currentScreenshot.Base64 = encode(img);
@@ -420,6 +436,15 @@ function initializeListeners() {
     });
 }
 
+function initializeLockListner() {
+    lockRefer = firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Lock').child('status');
+    lockRefer.on('value', (snapshot) => {
+        if (snapshot) {
+            snapshot.val() === LockStatus.LOCK ? pauseSystem() : startUp();
+        }
+    })
+}
+
 function triggerAction(key: string) {
     const trigger: Trigger = hashMap.get(key);
     switch (trigger.TriggerType) {
@@ -495,6 +520,7 @@ function shutDownSystem() {
             triggerRef.off('child_added');
             pingRef.off('value');
             connectedRef.off('value');
+            lockRefer.off('value');
             hashMap.forEach((value: Trigger, key: string) => {
                 onTriggerComplete(key, TriggerStatus.STOPPED);
             })
