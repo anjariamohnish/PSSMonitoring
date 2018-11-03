@@ -58,6 +58,10 @@ export function createTrigger(triggerType, userInfo) {
     return { Timestamp: Date.now(), TriggerStatus: TriggerStatus.PENDING, TriggerType: triggerType, User: userInfo };
 }
 
+export function createLock(pin, lockState, user) {
+    return { pin, status: lockState, timestamp: Date.now(), user };
+}
+
 export function createMessage(triggerType, triggerStatus) {
     let status = '';
     switch (triggerStatus) {

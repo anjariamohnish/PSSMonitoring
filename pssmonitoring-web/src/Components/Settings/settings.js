@@ -11,7 +11,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -22,7 +21,8 @@ import './settings.css';
 
 
 import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
-import { LockStatus, loaderState, loadingHints, notifyUser, notifyType } from '../../Utils/pss.helper';
+import { LockStatus, loaderState, loadingHints, notifyUser, notifyType, createLock } from '../../Utils/pss.helper';
+import { lockSystem, unlockSystem } from '../../Actions/api.actions';
 
 
 function Transition(props) {
@@ -89,12 +89,37 @@ class Settings extends Component {
             this.loaderInterval = setInterval(() => {
                 this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
             }, 1500);
-            
+            if (this.state.isLocked) {
+                this.props.unlockSystem(this.props.deviceInfo.deviceId, this.state.pin)
+                    .then((didPinMatched) => {
+                        if (didPinMatched) {
+                            notifyUser(`System Successfully ${this.state.isLocked ? 'Locked' : 'Unlocked'}`, notifyType.success);
+                        } else {
+                            notifyUser('Pin is incorrect', notifyType.error);
+                        }
+                    }).catch(() => {
+                        notifyUser('Something Went Wrong', notifyType.error);
+                    }).then(() => {
+                        clearInterval(this.loaderInterval);
+                        this.props.toggleLoader(loaderState.OFF);
+                    })
+            } else {
+                const lock = createLock(this.state.pin, this.state.isLocked ? LockStatus.UNLOCKED : LockStatus.LOCK, this.props.userInfo);
+                this.props.lockSystem(this.props.deviceInfo.deviceId, lock)
+                    .then(() => {
+                        notifyUser(`System Successfully ${this.state.isLocked ? 'Locked' : 'Unlocked'}`, notifyType.success);
+                    })
+                    .catch(() => {
+                        notifyUser('Something Went Wrong', notifyType.error);
+                    })
+                    .then(() => {
+                        clearInterval(this.loaderInterval);
+                        this.props.toggleLoader(loaderState.OFF);
+                    })
+            }
         } else {
             notifyUser('Enter 6 Digit Pin', notifyType.warning);
         }
-
-
     }
 
     handleClose = () => {
@@ -177,11 +202,12 @@ class Settings extends Component {
 
 const mapStateToProps = (state) => {
     return {
+        deviceInfo: state.pssReducer.deviceInfo,
         userInfo: state.pssReducer.userInfo,
         lock: state.pssReducer.lock
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, changeLoaderText })(Settings);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, lockSystem, unlockSystem })(Settings);
 

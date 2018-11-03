@@ -1,5 +1,5 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate } from '../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
     UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE
@@ -272,10 +272,29 @@ export const getScreenshots = (deviceId, userInfo) => dispatch => {
     firebaseListeners.push(triggRef);
 }
 
-export const checkIfExist = (databaseReference, listnerType) => dispatch => {
+export const checkIfExist = (databaseReference, listenerType) => dispatch => {
     return new Promise((resolve, reject) => {
-        firebase.database().ref(databaseReference).once(listnerType, (snapshot) => {
+        firebase.database().ref(databaseReference).once(listenerType, (snapshot) => {
             snapshot.exists() ? resolve() : reject();
+        }).then().catch(() => { reject() });
+    });
+}
+
+export const lockSystem = (deviceId, lock) => dispatch => {
+    return firebase.database().ref('Devices').child(deviceId).child('Lock').set(lock)
+}
+export const unlockSystem = (deviceId, pin) => dispatch => {
+    return new Promise((resolve, reject) => {
+        firebase.database().ref('Devices').child(deviceId).child('Lock').once('value', (snapshot) => {
+            if (snapshot.val().pin === pin) {
+                firebase.database().ref('Devices').child(deviceId).child('Lock').child('status').set(LockStatus.UNLOCKED).then(() => {
+                    resolve(true);
+                }).catch(() => {
+                    reject();
+                })
+            } else {
+                resolve(false)
+            }
         }).then().catch(() => { reject() });
     });
 }
