@@ -8,19 +8,19 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
 
-import './webcam.css';
+import './screenshot.css';
 
 import webcamIcon from '../../Assets/Image/webcam.svg';
 
 import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
-import { addTrigger, getWebcamImages } from '../../Actions/api.actions';
+import { addTrigger, getScreenshots } from '../../Actions/api.actions';
 import { notifyUser, notifyType, loaderState, loadingHints, createTrigger, TriggerType, extractDate, extractTime } from '../../Utils/pss.helper';
 
 function Transition(props) {
     return <Slide direction="up" {...props} />;
 }
 
-class Webcam extends Component {
+class Screenshot extends Component {
 
 
     constructor(props) {
@@ -36,7 +36,7 @@ class Webcam extends Component {
         this.loaderInterval = setInterval(() => {
             this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
         }, 1500)
-        this.props.getWebcamImages(this.props.deviceId, this.props.userInfo);
+        this.props.getScreenshots(this.props.deviceId, this.props.userInfo);
     }
 
 
@@ -57,9 +57,9 @@ class Webcam extends Component {
         })
         notifyUser('Agreement Accepted', notifyType.success);
         this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
-        this.props.addTrigger(this.props.deviceId, createTrigger(TriggerType.TAKEPICTURE, this.props.userInfo))
+        this.props.addTrigger(this.props.deviceId, createTrigger(TriggerType.SCREENSHOT, this.props.userInfo))
             .then(() => {
-                notifyUser('Successfully Sent Request For Webcam Picture', notifyType.success);
+                notifyUser('Successfully Sent Request For Screenshot', notifyType.success);
 
                 const loaderInterval = setInterval(() => {
                     this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
@@ -100,7 +100,7 @@ class Webcam extends Component {
                     aria-labelledby="alert-dialog-slide-title"
                     aria-describedby="alert-dialog-slide-description">
                     <DialogTitle id="alert-dialog-slide-title">
-                        {"Use Webcam service?"}
+                        {"Use Screenshot service?"}
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText id="alert-dialog-slide-description">
@@ -151,10 +151,10 @@ const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
         showLoader: state.pssReducer.showLoader,
-        webcamImages: state.pssReducer.webcamImages
+        screenshots: state.pssReducer.screenshots
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getWebcamImages })(Webcam);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getScreenshots })(Screenshot);
 

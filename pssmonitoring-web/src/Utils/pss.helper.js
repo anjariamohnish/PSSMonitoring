@@ -4,6 +4,7 @@ export const notifyType = Object.freeze({ 'info': 1, 'success': 2, 'warning': 3,
 export const loaderState = Object.freeze({ 'ON': true, 'OFF': false });
 export const TriggerStatus = Object.freeze({ 'SUCCESS': 0, 'FAILED': 1, 'PENDING': 2, 'STOPPED': 3 });
 export const TriggerType = Object.freeze({ 'SHUTDOWN': 0, 'RESTART': 1, 'LOCK': 2, 'SIGNOUT': 3, 'SHOW_MESSAGE': 4, 'TAKEPICTURE': 5, 'SCREENSHOT': 6 });
+export const LockStatus = Object.freeze({ 'UNLOCKED': 0, 'LOCK': 1 });
 // eslint-disable-next-line
 export const emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
 

@@ -2,7 +2,7 @@ import firebase from '../firebase';
 import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
-    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE
 } from './types';
 
 const firebaseListeners = [];
@@ -107,6 +107,18 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
             });
         }
     });
+
+    const deviceLockRef = firebase.database().ref('Devices').child(deviceId).child('Lock');
+
+    deviceLockRef.on('value', (snapshot) => {
+        const lock = snapshot.val();
+        dispatch({
+            type: SET_LOCK_STATE,
+            payload: lock
+        })
+    });
+
+    firebaseListeners.push(deviceLockRef);
     firebaseListeners.push(deviceStatusRef);
 }
 
@@ -156,7 +168,7 @@ export const getBrowserHistoryByDate = (deviceId, dates) => dispatch => {
     });
 }
 
-export const capturePicture = (deviceId, trigger) => dispatch => {
+export const addTrigger = (deviceId, trigger) => dispatch => {
     return new Promise((resolve, reject) => {
         const key = firebase.database().ref().push().key;
         firebase.database().ref('Devices').child(deviceId).child('Triggers').child(key).set(trigger)
@@ -205,7 +217,7 @@ export const enableTriggerListener = (deviceId, userInfo) => dispatch => {
 }
 
 export const getWebcamImages = (deviceId, userInfo) => dispatch => {
-    const webcamImgRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
+    const triggerRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
         .on('value', (snapshots) => {
             let keys = [];
             let timestamps = [];
@@ -229,7 +241,35 @@ export const getWebcamImages = (deviceId, userInfo) => dispatch => {
                     })
         });
 
-    firebaseListeners.push(webcamImgRef);
+    firebaseListeners.push(triggerRef);
+}
+
+export const getScreenshots = (deviceId, userInfo) => dispatch => {
+    const triggRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
+        .on('value', (snapshots) => {
+            let keys = [];
+            let timestamps = [];
+            snapshots.forEach((snapshot) => {
+                if (snapshot.val().TriggerType === TriggerType.SCREENSHOT && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
+                    keys.push(snapshot.key);
+                    timestamps[snapshot.key] = snapshot.val().Timestamp;
+                }
+            });
+            if (keys && keys.length > 0)
+                firebase.database().ref('Devices').child(deviceId).child('Screenshots').child(extractDate())
+                    .once('value', (snapshots) => {
+                        snapshots.forEach((snapshot) => {
+                            if (keys.includes(snapshot.val().key)) {
+                                dispatch({
+                                    type: ADD_SCREENSHOT_IMAGE,
+                                    payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
+                                })
+                            }
+                        })
+                    })
+        });
+
+    firebaseListeners.push(triggRef);
 }
 
 export const stopAllListeners = () => dispatch => {

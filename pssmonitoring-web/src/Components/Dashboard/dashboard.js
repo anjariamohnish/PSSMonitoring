@@ -18,7 +18,7 @@ import Popover from '@material-ui/core/Popover';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import Screenshot from '@material-ui/icons/AddToQueue';
+import ScreenshotIcon from '@material-ui/icons/AddToQueue';
 import WebCamIcon from '@material-ui/icons/LinkedCamera';
 import Settings from '@material-ui/icons/Settings';
 import History from '@material-ui/icons/History';
@@ -29,9 +29,10 @@ import remoteControl from '../../Assets/Image/remotecontrol.png';
 
 import { removeTrigger, clearOldTabState, toggleLoader } from '../../Actions/pss.actions';
 import { signOutUser, trackDeviceStatus, enableTriggerListener, stopAllListeners } from '../../Actions/api.actions';
-import { notifyUser, notifyType, TriggerStatus, createMessage, loaderState } from '../../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, createMessage, loaderState, LockStatus, extractDate, extractTime } from '../../Utils/pss.helper';
 import BrowserHistory from '../BrowserHistory/browserhistory';
 import Webcam from '../Webcam/webcam';
+import Screenshot from '../Screnshot/screenshot';
 
 const drawerWidth = 240;
 
@@ -145,6 +146,22 @@ class Dashboard extends Component {
         this.props.stopAllListeners();
     }
 
+    componentDidUpdate(prevProps) {
+        if (this.props.lock && !prevProps.lock) {
+            if (this.props.lock.status === 1) {
+                notifyUser('LOCKED', notifyType.warning);
+            }
+        } else if (this.props.lock && prevProps.lock) {
+            if (prevProps.lock.status !== this.props.lock.status) {
+                if (this.props.lock.status === 1) {
+                    notifyUser('LOCKED', notifyType.warning);
+                } else {
+                    notifyUser('UNLOCKED', notifyType.warning);
+                }
+            }
+        }
+    }
+
     initializeListeners() {
         this.props.trackDeviceStatus(this.props.deviceInfo.deviceId);
         this.props.enableTriggerListener(this.props.deviceInfo.deviceId, this.props.userInfo);
@@ -216,8 +233,8 @@ class Dashboard extends Component {
                     return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Webcam':
                     return (<Webcam deviceId={this.props.deviceInfo.deviceId} />);
-                // case 'Screenshot':
-                //     return (<Screenshot />);
+                case 'Screenshot':
+                    return (<Screenshot />);
                 // case 'RemoteControl':
                 //     return (<RemoteControl />);
                 // case 'Settings':
@@ -359,7 +376,7 @@ class Dashboard extends Component {
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Screenshot')}>
                             <ListItemIcon>
-                                <Screenshot />
+                                <ScreenshotIcon />
                             </ListItemIcon>
                             <ListItemText primary="Screenshot" />
                         </ListItem>
@@ -384,6 +401,12 @@ class Dashboard extends Component {
                     <div className={classes.toolbar} />
                     {this.renderSelectedComponent()}
                 </main>
+                {this.props.lock && this.props.lock.status === LockStatus.LOCK ?
+                    <div className="footer">
+                        <p>{`DEVICE LOCKED BY ${this.props.lock.user.name.toUpperCase()} ON ${extractDate(this.props.lock.timestamp)}@${extractTime(this.props.lock.timestamp)}`}</p>
+                    </div>
+                    : null}
+
             </div>
         );
     }
@@ -394,7 +417,8 @@ const mapStateToProps = (state) => {
         userInfo: state.pssReducer.userInfo,
         deviceInfo: state.pssReducer.deviceInfo,
         triggers: state.pssReducer.triggers,
-        isTriggerLoaded: state.pssReducer.isTriggerLoaded
+        isTriggerLoaded: state.pssReducer.isTriggerLoaded,
+        lock: state.pssReducer.lock
     }
 }
 

@@ -1,8 +1,10 @@
 import {
     TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA,
     CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY,
-    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE
+    CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE,
+    ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE
 } from '../Actions/types';
+import { LockStatus } from '../Utils/pss.helper';
 
 const initialState = {
     showLoader: false,
@@ -11,7 +13,8 @@ const initialState = {
     savedHistory: [],
     triggers: [],
     isTriggerLoaded: false,
-    webcamImages: []
+    webcamImages: [],
+    screenshots: []  
 };
 
 export default function (state = initialState, action) {
@@ -104,6 +107,16 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 webcamImages: []
+            }
+        case ADD_SCREENSHOT_IMAGE:
+            return {
+                ...state,
+                screenshots: [...state.screenshots, action.payload]
+            }
+        case SET_LOCK_STATE:
+            return {
+                ...state,
+                lock: action.payload
             }
         default:
             return state;
