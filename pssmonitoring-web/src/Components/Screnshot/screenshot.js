@@ -13,7 +13,7 @@ import './screenshot.css';
 import webcamIcon from '../../Assets/Image/webcam.svg';
 
 import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
-import { addTrigger, getScreenshots } from '../../Actions/api.actions';
+import { addTrigger, getScreenshots, checkIfExist } from '../../Actions/api.actions';
 import { notifyUser, notifyType, loaderState, loadingHints, createTrigger, TriggerType, extractDate, extractTime } from '../../Utils/pss.helper';
 
 function Transition(props) {
@@ -36,7 +36,16 @@ class Screenshot extends Component {
         this.loaderInterval = setInterval(() => {
             this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
         }, 1500)
-        this.props.getScreenshots(this.props.deviceId, this.props.userInfo);
+        this.props.checkIfExist(`Devices/${this.props.deviceInfo.deviceId}/Screenshots/${extractDate()}@${extractTime()}`, 'value')
+            .then(() => {
+                this.props.getScreenshots(this.props.deviceId, this.props.userInfo);
+            })
+            .catch(() => {
+                this.props.toggleLoader(loaderState.OFF);
+                clearInterval(this.loaderInterval);
+                notifyUser('No Images Found', notifyType.info);
+            })
+
     }
 
 
@@ -86,7 +95,7 @@ class Screenshot extends Component {
     }
 
     render() {
-        if (this.props.webcamImages.length > 0 && this.props.showLoader) {
+        if (this.props.screenshots.length > 0 && this.props.showLoader) {
             this.props.toggleLoader(loaderState.OFF);
             clearInterval(this.loaderInterval);
         }
@@ -126,7 +135,7 @@ class Screenshot extends Component {
                 <div className="container-fluid">
                     <div className="row">
                         {
-                            this.props.webcamImages.map((image) => {
+                            this.props.screenshots.map((image) => {
                                 return (
                                     <div className="col-12 col-sm-6 col-md-4 mb-sm-4 mb-2 p-4 p-sm-2 animated fadeIn" key={image.snapshot.key}>
                                         <div className="card shadow">
@@ -150,11 +159,12 @@ class Screenshot extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
+        deviceInfo: state.pssReducer.deviceInfo,
         showLoader: state.pssReducer.showLoader,
         screenshots: state.pssReducer.screenshots
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getScreenshots })(Screenshot);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getScreenshots, checkIfExist })(Screenshot);
 

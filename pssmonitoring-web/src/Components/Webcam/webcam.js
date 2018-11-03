@@ -13,7 +13,7 @@ import './webcam.css';
 import webcamIcon from '../../Assets/Image/webcam.svg';
 
 import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
-import { addTrigger, getWebcamImages } from '../../Actions/api.actions';
+import { addTrigger, getWebcamImages, checkIfExist } from '../../Actions/api.actions';
 import { notifyUser, notifyType, loaderState, loadingHints, createTrigger, TriggerType, extractDate, extractTime } from '../../Utils/pss.helper';
 
 function Transition(props) {
@@ -35,8 +35,15 @@ class Webcam extends Component {
         this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
         this.loaderInterval = setInterval(() => {
             this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
-        }, 1500)
-        this.props.getWebcamImages(this.props.deviceId, this.props.userInfo);
+        }, 1500);
+        this.props.checkIfExist(`Devices/${this.props.deviceInfo.deviceId}/Webcam/${extractDate()}@${extractTime()}`, 'value')
+            .then(() => {
+                this.props.getWebcamImages(this.props.deviceId, this.props.userInfo);
+            }).catch(() => {
+                this.props.toggleLoader(loaderState.OFF);
+                clearInterval(this.loaderInterval);
+                notifyUser('No Images Found', notifyType.info);
+            });
     }
 
 
@@ -150,11 +157,12 @@ class Webcam extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
+        deviceInfo: state.pssReducer.deviceInfo,
         showLoader: state.pssReducer.showLoader,
         webcamImages: state.pssReducer.webcamImages
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getWebcamImages })(Webcam);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, addTrigger, getWebcamImages, checkIfExist })(Webcam);
 

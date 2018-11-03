@@ -272,6 +272,14 @@ export const getScreenshots = (deviceId, userInfo) => dispatch => {
     firebaseListeners.push(triggRef);
 }
 
+export const checkIfExist = (databaseReference, listnerType) => dispatch => {
+    return new Promise((resolve, reject) => {
+        firebase.database().ref(databaseReference).once(listnerType, (snapshot) => {
+            snapshot.exists() ? resolve() : reject();
+        }).then().catch(() => { reject() });
+    });
+}
+
 export const stopAllListeners = () => dispatch => {
     firebaseListeners.forEach(listener => {
         listener.off();
