@@ -20,7 +20,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ScreenshotIcon from '@material-ui/icons/AddToQueue';
 import WebCamIcon from '@material-ui/icons/LinkedCamera';
-import Settings from '@material-ui/icons/Settings';
+import SettingsIcon from '@material-ui/icons/Settings';
 import History from '@material-ui/icons/History';
 import deepOrange from '@material-ui/core/colors/deepOrange';
 
@@ -33,6 +33,7 @@ import { notifyUser, notifyType, TriggerStatus, createMessage, loaderState, Lock
 import BrowserHistory from '../BrowserHistory/browserhistory';
 import Webcam from '../Webcam/webcam';
 import Screenshot from '../Screnshot/screenshot';
+import Settings from '../Settings/settings';
 
 const drawerWidth = 240;
 
@@ -237,8 +238,8 @@ class Dashboard extends Component {
                     return (<Screenshot />);
                 // case 'RemoteControl':
                 //     return (<RemoteControl />);
-                // case 'Settings':
-                //     return (<Settings />);
+                case 'Settings':
+                    return (<Settings />);
                 default:
             }
         } else {
@@ -391,7 +392,7 @@ class Dashboard extends Component {
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Settings')}>
                             <ListItemIcon>
-                                <Settings />
+                                <SettingsIcon />
                             </ListItemIcon>
                             <ListItemText primary="Settings" />
                         </ListItem>
