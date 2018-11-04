@@ -129,7 +129,7 @@ class Settings extends Component {
 
     render() {
         return (
-            <div>
+            <div className="ml-md-5 mr-md-5">
                 <div className="card shadow mt-5">
                     <div className="card-header text-center">
                         Lock System

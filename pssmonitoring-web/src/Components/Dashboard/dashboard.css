@@ -44,6 +44,10 @@ body {
     height: 15px;
 }
 
-.footer p{
+.footer p {
     font-size: 10px;
+}
+
+.animated.fastest {
+    animation-duration: 100ms;
 }

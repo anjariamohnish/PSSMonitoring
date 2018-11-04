@@ -35,7 +35,7 @@ import Webcam from '../Webcam/webcam';
 import Screenshot from '../Screnshot/screenshot';
 import Settings from '../Settings/settings';
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 const styles = theme => ({
     root: {
@@ -356,35 +356,35 @@ class Dashboard extends Component {
                         <Divider />
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Home')}>
                             <ListItemIcon>
-                                <i className="fa fa-home" aria-hidden="true"></i>
+                                <i className="fa fa-home mr-0" aria-hidden="true"></i>
                             </ListItemIcon>
                             <ListItemText primary="Home" />
                         </ListItem>
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Browser History')}>
                             <ListItemIcon>
-                                <History />
+                                <History style={{ marginRight: 0 }} />
                             </ListItemIcon>
                             <ListItemText primary="Broswer History" />
                         </ListItem>
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Webcam')}>
                             <ListItemIcon>
-                                <WebCamIcon />
+                                <WebCamIcon style={{ marginRight: 0 }} />
                             </ListItemIcon>
                             <ListItemText primary="Webcam" />
                         </ListItem>
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Screenshot')}>
                             <ListItemIcon>
-                                <ScreenshotIcon />
+                                <ScreenshotIcon style={{ marginRight: 0 }} />
                             </ListItemIcon>
                             <ListItemText primary="Screenshot" />
                         </ListItem>
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'RemoteControl')}>
                             <ListItemIcon>
-                                <img src={remoteControl} alt="remote-icon" />
+                                <img src={remoteControl} alt="remote-icon" className="mr-0" />
                             </ListItemIcon>
                             <ListItemText primary="RemoteControl" />
                         </ListItem>
@@ -392,13 +392,13 @@ class Dashboard extends Component {
 
                         <ListItem button onClick={this.handleDrawerItemClick.bind(this, 'Settings')}>
                             <ListItemIcon>
-                                <SettingsIcon />
+                                <SettingsIcon style={{ marginRight: 0 }} />
                             </ListItemIcon>
                             <ListItemText primary="Settings" />
                         </ListItem>
                     </List>
                 </Drawer>
-                <main className={`${classes.content} scroll4`} onClick={this.state.open ? this.handleDrawerClose : null} >
+                <main className={`${classes.content} scroll4 animated ${this.state.open ? 'fadeOut fastest' : 'fadeIn fastest'}`} onClick={this.state.open ? this.handleDrawerClose : null} >
                     <div className={classes.toolbar} />
                     {this.renderSelectedComponent()}
                 </main>
