@@ -1,8 +1,8 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus } from '../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus, ListenerType } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
-    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND
 } from './types';
 
 const firebaseListeners = [];
@@ -118,12 +118,13 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
         })
     });
 
-    firebaseListeners.push(deviceLockRef);
-    firebaseListeners.push(deviceStatusRef);
+    firebaseListeners.push({ type: -1, reference: deviceLockRef });
+    firebaseListeners.push({ type: -1, reference: deviceStatusRef });
 }
 
 export const getBrowserHistory = (deviceId) => dispatch => {
-    firebase.database().ref('Devices').child(deviceId).child('BrowserHistory').on('child_added', (snapshot) => {
+    const browserRef = firebase.database().ref('Devices').child(deviceId).child('BrowserHistory');
+    browserRef.on('child_added', (snapshot) => {
         // console.log(snapshot.toJSON());
         // const data = new Array();
         // snapshot.forEach((element) => {
@@ -143,6 +144,8 @@ export const getBrowserHistory = (deviceId) => dispatch => {
         });
 
     });
+
+    firebaseListeners.push({ reference: browserRef, type: ListenerType.BrowserHistoryRef });
 }
 
 export const getBrowserHistoryByDate = (deviceId, dates) => dispatch => {
@@ -213,63 +216,65 @@ export const enableTriggerListener = (deviceId, userInfo) => dispatch => {
             payload: { key: snapshot.key, data: snapshot.val() }
         })
     });
-    firebaseListeners.push(triggerRef);
+    firebaseListeners.push({ reference: triggerRef, type: ListenerType.triggerRef });
 }
 
 export const getWebcamImages = (deviceId, userInfo) => dispatch => {
-    const triggerRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
-        .on('value', (snapshots) => {
-            let keys = [];
-            let timestamps = [];
-            snapshots.forEach((snapshot) => {
-                if (snapshot.val().TriggerType === TriggerType.TAKEPICTURE && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
-                    keys.push(snapshot.key);
-                    timestamps[snapshot.key] = snapshot.val().Timestamp;
-                }
-            });
-            if (keys && keys.length > 0)
-                firebase.database().ref('Devices').child(deviceId).child('Webcam').child(extractDate())
-                    .once('value', (snapshots) => {
-                        snapshots.forEach((snapshot) => {
-                            if (keys.includes(snapshot.val().key)) {
-                                dispatch({
-                                    type: ADD_WEBCAM_IMAGE,
-                                    payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
-                                })
-                            }
-                        })
-                    })
-        });
+    const webcamRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid);
 
-    firebaseListeners.push(triggerRef);
+    webcamRef.on('value', (snapshots) => {
+        let keys = [];
+        let timestamps = [];
+        snapshots.forEach((snapshot) => {
+            if (snapshot.val().TriggerType === TriggerType.TAKEPICTURE && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
+                keys.push(snapshot.key);
+                timestamps[snapshot.key] = snapshot.val().Timestamp;
+            }
+        });
+        if (keys && keys.length > 0)
+            firebase.database().ref('Devices').child(deviceId).child('Webcam').child(extractDate())
+                .once('value', (snapshots) => {
+                    snapshots.forEach((snapshot) => {
+                        if (keys.includes(snapshot.val().key)) {
+                            dispatch({
+                                type: ADD_WEBCAM_IMAGE,
+                                payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
+                            })
+                        }
+                    })
+                })
+    });
+
+    firebaseListeners.push({ reference: webcamRef, type: ListenerType.WebcamRef });
 }
 
 export const getScreenshots = (deviceId, userInfo) => dispatch => {
-    const triggRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid)
-        .on('value', (snapshots) => {
-            let keys = [];
-            let timestamps = [];
-            snapshots.forEach((snapshot) => {
-                if (snapshot.val().TriggerType === TriggerType.SCREENSHOT && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
-                    keys.push(snapshot.key);
-                    timestamps[snapshot.key] = snapshot.val().Timestamp;
-                }
-            });
-            if (keys && keys.length > 0)
-                firebase.database().ref('Devices').child(deviceId).child('Screenshots').child(extractDate())
-                    .once('value', (snapshots) => {
-                        snapshots.forEach((snapshot) => {
-                            if (keys.includes(snapshot.val().key)) {
-                                dispatch({
-                                    type: ADD_SCREENSHOT_IMAGE,
-                                    payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
-                                })
-                            }
-                        })
-                    })
-        });
+    const screenShotRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid);
 
-    firebaseListeners.push(triggRef);
+    screenShotRef.on('value', (snapshots) => {
+        let keys = [];
+        let timestamps = [];
+        snapshots.forEach((snapshot) => {
+            if (snapshot.val().TriggerType === TriggerType.SCREENSHOT && snapshot.val().TriggerStatus === TriggerStatus.SUCCESS) {
+                keys.push(snapshot.key);
+                timestamps[snapshot.key] = snapshot.val().Timestamp;
+            }
+        });
+        if (keys && keys.length > 0)
+            firebase.database().ref('Devices').child(deviceId).child('Screenshots').child(extractDate())
+                .once('value', (snapshots) => {
+                    snapshots.forEach((snapshot) => {
+                        if (keys.includes(snapshot.val().key)) {
+                            dispatch({
+                                type: ADD_SCREENSHOT_IMAGE,
+                                payload: { snapshot: snapshot.val(), timestamp: timestamps[snapshot.val().key] }
+                            })
+                        }
+                    })
+                })
+    });
+
+    firebaseListeners.push({ reference: screenShotRef, type: ListenerType.ScreenshotRef });
 }
 
 export const checkIfExist = (databaseReference, listenerType) => dispatch => {
@@ -283,6 +288,7 @@ export const checkIfExist = (databaseReference, listenerType) => dispatch => {
 export const lockSystem = (deviceId, lock) => dispatch => {
     return firebase.database().ref('Devices').child(deviceId).child('Lock').set(lock)
 }
+
 export const unlockSystem = (deviceId, pin) => dispatch => {
     return new Promise((resolve, reject) => {
         firebase.database().ref('Devices').child(deviceId).child('Lock').once('value', (snapshot) => {
@@ -299,8 +305,36 @@ export const unlockSystem = (deviceId, pin) => dispatch => {
     });
 }
 
+export const getCommands = (deviceId, userInfo) => dispatch => {
+    const commandsRef = firebase.database().ref('Devices').child(deviceId).child('Triggers').orderByChild('User/uid').equalTo(userInfo.uid);
+    commandsRef.on('value', (snapshots) => {
+        snapshots.forEach((snapshot) => {
+            switch (snapshot.val().TriggerType) {
+                case TriggerType.SHUTDOWN:
+                case TriggerType.RESTART:
+                case TriggerType.SHOW_MESSAGE:
+                case TriggerType.SIGNOUT:
+                case TriggerType.LOCK:
+                    dispatch({
+                        type: ADD_COMMAND,
+                        payload: { snapshot: snapshot.val(), key: snapshot.key }
+                    })
+            }
+        });
+    });
+
+    firebaseListeners.push({ reference: commandsRef, type: ListenerType.RemoteControlRef });
+}
+
+export const stopListener = (type) => {
+    const index = firebaseListeners.findIndex(x => x.type === type);
+    firebaseListeners[index].reference.off();
+    firebaseListeners.splice(index, 1);
+    console.log(firebaseListeners)
+}
+
 export const stopAllListeners = () => dispatch => {
     firebaseListeners.forEach(listener => {
-        listener.off();
+        listener.reference.off();
     });
 }

@@ -2,7 +2,7 @@ import {
     TOGGLE_LOADER, CHANGE_LOADER_TEXT, SET_USER_INFO, SIGNOUT_USER, SET_DEVICE_DATA,
     CHANGE_DEVICE_STATUS, UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY,
     CLEAR_HISTORY_FILTER, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE,
-    ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE
+    ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND, RESET_SCREENSHOT_TAB_STATE, RESET_REMOTECTRL_TAB_STATE
 } from '../Actions/types';
 import { LockStatus } from '../Utils/pss.helper';
 
@@ -14,7 +14,8 @@ const initialState = {
     triggers: [],
     isTriggerLoaded: false,
     webcamImages: [],
-    screenshots: []  
+    screenshots: [],
+    commands: []
 };
 
 export default function (state = initialState, action) {
@@ -113,10 +114,28 @@ export default function (state = initialState, action) {
                 ...state,
                 screenshots: [...state.screenshots, action.payload]
             }
+        case RESET_SCREENSHOT_TAB_STATE:
+            return {
+                ...state,
+                screenshots: []
+            }
         case SET_LOCK_STATE:
             return {
                 ...state,
                 lock: action.payload
+            }
+        case ADD_COMMAND:
+            return {
+                ...state,
+                commands: {
+                    ...state.commands,
+                    [action.payload.key]: action.payload.snapshot
+                }
+            }
+        case RESET_REMOTECTRL_TAB_STATE:
+            return {
+                ...state,
+                commands: []
             }
         default:
             return state;

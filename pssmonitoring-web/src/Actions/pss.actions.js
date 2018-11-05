@@ -1,4 +1,6 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, RESET_WEBCAM_TAB_STATE } from './types';
+import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, RESET_WEBCAM_TAB_STATE, RESET_REMOTECTRL_TAB_STATE, RESET_SCREENSHOT_TAB_STATE } from './types';
+import { stopListener } from './api.actions';
+import { ListenerType } from '../Utils/pss.helper';
 
 
 export const toggleLoader = (loaderState, loaderText = null) => dispatch => {
@@ -41,16 +43,20 @@ export const clearOldTabState = (tab) => dispatch => {
                 // do nothing
                 break;
             case 'Browser History':
+                stopListener(ListenerType.BrowserHistoryRef);
                 dispatch({ type: RESET_HISTORY_TAB_STATE })
                 break;
             case 'Webcam':
+                stopListener(ListenerType.WebcamRef);
                 dispatch({ type: RESET_WEBCAM_TAB_STATE })
                 break;
             case 'Screenshot':
-                // do nothing
+                stopListener(ListenerType.ScreenshotRef);
+                dispatch({ type: RESET_SCREENSHOT_TAB_STATE })
                 break;
             case 'RemoteControl':
-                // do nothing
+                stopListener(ListenerType.RemoteControlRef);
+                dispatch({ type: RESET_REMOTECTRL_TAB_STATE })
                 break;
             case 'Settings':
                 // do nothing

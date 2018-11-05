@@ -34,6 +34,7 @@ import BrowserHistory from '../BrowserHistory/browserhistory';
 import Webcam from '../Webcam/webcam';
 import Screenshot from '../Screnshot/screenshot';
 import Settings from '../Settings/settings';
+import RemoteControl from '../RemoteControl/remotecontrol';
 
 const drawerWidth = 220;
 
@@ -235,9 +236,9 @@ class Dashboard extends Component {
                 case 'Webcam':
                     return (<Webcam deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Screenshot':
-                    return (<Screenshot />);
-                // case 'RemoteControl':
-                //     return (<RemoteControl />);
+                    return (<Screenshot deviceId={this.props.deviceInfo.deviceId} />);
+                case 'RemoteControl':
+                    return (<RemoteControl deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Settings':
                     return (<Settings />);
                 default:
