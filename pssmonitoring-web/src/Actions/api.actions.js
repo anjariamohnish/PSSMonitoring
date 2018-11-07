@@ -328,9 +328,10 @@ export const getCommands = (deviceId, userInfo) => dispatch => {
 
 export const stopListener = (type) => {
     const index = firebaseListeners.findIndex(x => x.type === type);
-    firebaseListeners[index].reference.off();
-    firebaseListeners.splice(index, 1);
-    console.log(firebaseListeners)
+    if (index && firebaseListeners[index]) {
+        firebaseListeners[index].reference.off();
+        firebaseListeners.splice(index, 1);
+    }
 }
 
 export const stopAllListeners = () => dispatch => {

@@ -159,6 +159,7 @@ class Screenshot extends Component {
 const mapStateToProps = (state) => {
     return {
         userInfo: state.pssReducer.userInfo,
+        deviceInfo: state.pssReducer.deviceInfo,
         showLoader: state.pssReducer.showLoader,
         screenshots: state.pssReducer.screenshots
     }
