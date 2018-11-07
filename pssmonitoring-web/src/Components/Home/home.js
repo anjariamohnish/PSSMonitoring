@@ -6,7 +6,7 @@ import './home.css';
 
 
 import { toggleLoader, changeLoaderText } from '../../Actions/pss.actions';
-import { getQuestions } from '../../Actions/api.actions';
+import { getQuestions, getLiveStatus } from '../../Actions/api.actions';
 
 
 class Home extends Component {
@@ -25,6 +25,7 @@ class Home extends Component {
     }
 
     componentDidMount() {
+        this.props.getLiveStatus(this.props.deviceId);
         this.props.getQuestions();
     }
 
@@ -89,14 +90,17 @@ class Home extends Component {
         }
         return (
             <div className="home">
-                <div className="container-fluid clearfix">
-                    <div className="float-left">
-                        <p>Start Time : 19:04</p>
+                {this.props.liveStatus ?
+                    <div className="container-fluid clearfix">
+                        <div className="float-left">
+                            <p className="h6 ">Start Time : {this.props.liveStatus.StartTime}</p>
+                        </div>
+                        <div className="float-right">
+                            <p className="h6">Up Time : {this.props.liveStatus.UpTime}</p>
+                        </div>
                     </div>
-                    <div className="float-right">
-                        <p>Up Time : 49 Mins</p>
-                    </div>
-                </div>
+                    : null
+                }
                 {
                     this.state.question !== '' ?
                         <div className="container-fluid card shadow text-center p-0">
@@ -136,12 +140,11 @@ class Home extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        deviceInfo: state.pssReducer.deviceInfo,
-        userInfo: state.pssReducer.userInfo,
-        quiz: state.pssReducer.quiz
+        quiz: state.pssReducer.quiz,
+        liveStatus: state.pssReducer.liveStatus
     }
 }
 
 
-export default connect(mapStateToProps, { toggleLoader, changeLoaderText, getQuestions })(Home);
+export default connect(mapStateToProps, { toggleLoader, changeLoaderText, getQuestions, getLiveStatus })(Home);
 

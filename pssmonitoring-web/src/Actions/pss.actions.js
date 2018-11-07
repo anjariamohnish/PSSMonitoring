@@ -1,4 +1,7 @@
-import { TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, RESET_WEBCAM_TAB_STATE, RESET_REMOTECTRL_TAB_STATE, RESET_SCREENSHOT_TAB_STATE } from './types';
+import {
+    TOGGLE_LOADER, CHANGE_LOADER_TEXT, CLEAR_HISTORY_FILTER, REMOVE_TRIGGER, RESET_HISTORY_TAB_STATE, RESET_WEBCAM_TAB_STATE,
+    RESET_REMOTECTRL_TAB_STATE, RESET_SCREENSHOT_TAB_STATE, RESET_HOME_TAB_STATE
+} from './types';
 import { stopListener } from './api.actions';
 import { ListenerType } from '../Utils/pss.helper';
 
@@ -40,7 +43,8 @@ export const clearOldTabState = (tab) => dispatch => {
     return new Promise((resolve, reject) => {
         switch (tab) {
             case 'Home':
-                // do nothing
+                stopListener(ListenerType.liveStatusRef);
+                dispatch({ type: RESET_HOME_TAB_STATE })
                 break;
             case 'Browser History':
                 stopListener(ListenerType.BrowserHistoryRef);

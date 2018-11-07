@@ -2,7 +2,7 @@ import firebase from '../firebase';
 import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus, ListenerType, QuizCategory, shuffle } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
-    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND, ADD_QUIZ_QUESTION
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND, ADD_QUIZ_QUESTION, UPDATE_LIVE_STATUS
 } from './types';
 
 const firebaseListeners = [];
@@ -355,6 +355,17 @@ export const getQuestions = () => dispatch => {
                 console.log(err);
             })
     });
+}
+
+export const getLiveStatus = (deviceId) => dispatch => {
+    const liveStatRef = firebase.database().ref('Devices').child(deviceId).child('LiveStatus');
+    liveStatRef.on('value', (snapshot) => {
+        dispatch({
+            type: UPDATE_LIVE_STATUS,
+            payload: { StartTime: snapshot.val().StartTime, UpTime: snapshot.val().UpTime.replace('-', '') }
+        })
+    });
+    firebaseListeners.push({ reference: liveStatRef, type: ListenerType.liveStatusRef });
 }
 
 export const stopListener = (type) => {

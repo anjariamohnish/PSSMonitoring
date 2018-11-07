@@ -231,7 +231,7 @@ class Dashboard extends Component {
         if (this.props.deviceInfo) {
             switch (this.state.currentMenuItemSelected) {
                 case 'Home':
-                    return (<Home />);
+                    return (<Home deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Browser History':
                     return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Webcam':
