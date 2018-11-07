@@ -1,9 +1,9 @@
-import { Systeminformation } from 'systeminformation';
-import { Ram } from './ram.model';
+// import { Systeminformation } from 'systeminformation';
+// import { Ram } from './ram.model';
 
 export class LiveStatus {
-    BatteryInfo!: Systeminformation.BatteryData;
+    // BatteryInfo!: Systeminformation.BatteryData;
     UpTime!: string;
     StartTime!: string;
-    RamInfo!: Ram;
+    // RamInfo!: Ram;
 }

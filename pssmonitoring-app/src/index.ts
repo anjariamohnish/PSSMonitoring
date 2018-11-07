@@ -98,10 +98,10 @@ function liveMachineStats() {
     let oldStatus: any = null;
     const liveStatusInterval = setInterval(() => {
         Promise.all([ // promises
-            sysInfo.battery().then(data => data.hasbatter ? status.BatteryInfo = data : null),
-            sysInfo.mem().then(data => {
-                status.RamInfo = { Total: readableBytes(data.total), Available: readableBytes(data.available), InUse: readableBytes(data.used) };
-            }),
+            // sysInfo.battery().then(data => data.hasbatter ? status.BatteryInfo = data : null),
+            // sysInfo.mem().then(data => {
+            //     status.RamInfo = { Total: readableBytes(data.total), Available: readableBytes(data.available), InUse: readableBytes(data.used) };
+            // }),
             sysInfo.users().then(data => {
                 status.StartTime = data[0].time + ':00';
                 status.UpTime = getTimeDifference(status.StartTime, getCurrentDateTime(false, true));
