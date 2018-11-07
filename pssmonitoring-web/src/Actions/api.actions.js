@@ -1,8 +1,8 @@
 import firebase from '../firebase';
-import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus, ListenerType } from '../Utils/pss.helper';
+import { notifyUser, notifyType, TriggerStatus, TriggerType, extractDate, LockStatus, ListenerType, QuizCategory, shuffle } from '../Utils/pss.helper';
 import {
     SIGNOUT_USER, SET_USER_INFO, SET_DEVICE_DATA, CHANGE_DEVICE_STATUS,
-    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND
+    UPDATE_BROWSER_HISTORY, SHOW_FILTERED_HISTORY, ADD_TRIGGER, UPDATE_TRIGGER, TRIGGER_LOADED, ADD_WEBCAM_IMAGE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND, ADD_QUIZ_QUESTION
 } from './types';
 
 const firebaseListeners = [];
@@ -324,6 +324,37 @@ export const getCommands = (deviceId, userInfo) => dispatch => {
     });
 
     firebaseListeners.push({ reference: commandsRef, type: ListenerType.RemoteControlRef });
+}
+
+export const getQuestions = () => dispatch => {
+    const apiBaseUrl = 'https://opentdb.com/api.php?amount=5&difficulty=easy';
+    QuizCategory.forEach((category) => {
+        fetch(`${apiBaseUrl}&category=${category}`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.results) {
+                    shuffle(data.results).forEach((quiz) => {
+                        if (quiz.type === 'multiple') {
+                            const options = [];
+                            quiz.incorrect_answers.forEach((answer) => {
+                                options.push(answer);
+                            });
+                            options.push(quiz.correct_answer);
+                            quiz.options = shuffle(options);
+                        }
+                        delete quiz.category;
+                        delete quiz.difficulty;
+                        delete quiz.incorrect_answers;
+                        dispatch({
+                            type: ADD_QUIZ_QUESTION,
+                            payload: quiz
+                        });
+                    })
+                }
+            }).catch((err) => {
+                console.log(err);
+            })
+    });
 }
 
 export const stopListener = (type) => {

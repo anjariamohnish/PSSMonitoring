@@ -1,11 +1,13 @@
 import { NotificationManager } from 'react-notifications';
+import { func } from 'prop-types';
 
 export const notifyType = Object.freeze({ 'info': 1, 'success': 2, 'warning': 3, 'error': 4 });
 export const loaderState = Object.freeze({ 'ON': true, 'OFF': false });
 export const TriggerStatus = Object.freeze({ 'SUCCESS': 0, 'FAILED': 1, 'PENDING': 2, 'STOPPED': 3 });
 export const TriggerType = Object.freeze({ 'SHUTDOWN': 0, 'RESTART': 1, 'LOCK': 2, 'SIGNOUT': 3, 'SHOW_MESSAGE': 4, 'TAKEPICTURE': 5, 'SCREENSHOT': 6 });
 export const LockStatus = Object.freeze({ 'UNLOCKED': 0, 'LOCK': 1 });
-export const ListenerType = Object.freeze({ 'ScreenshotRef': 0, 'WebcamRef': 1, 'BrowserHistoryRef': 2, 'RemoteControlRef': 3, 'triggerRef': 4 })
+export const ListenerType = Object.freeze({ 'ScreenshotRef': 0, 'WebcamRef': 1, 'BrowserHistoryRef': 2, 'RemoteControlRef': 3, 'triggerRef': 4 });
+export const QuizCategory = [9, 10, 16, 17, 19, 22, 23, 27];
 // eslint-disable-next-line
 export const emailRegex = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
 
@@ -92,6 +94,13 @@ export function createMessage(triggerType, triggerStatus) {
             return 'Message was shown' + status
         default:
     }
+}
+export function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
 }
 
 export const loadingHints = [

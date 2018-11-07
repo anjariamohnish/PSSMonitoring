@@ -7,7 +7,7 @@ import './login.css';
 
 import avatar from '../../Assets/Image/avatar.png';
 
-import { notifyUser, notifyType, validateUserInputs, emailRegex, loaderState } from '../../Utils/pss.helper';
+import { notifyUser, notifyType, validateUserInputs, emailRegex, loaderState, QuizCategory } from '../../Utils/pss.helper';
 import { toggleLoader } from '../../Actions/pss.actions';
 import { loginUser, sendForgotPasswordMail } from '../../Actions/api.actions';
 

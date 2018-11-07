@@ -1,0 +1,11 @@
+.card {
+    top: 50%;
+    width: 90%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    position: absolute;
+}
+
+.card-body button {
+    white-space: normal;
+}

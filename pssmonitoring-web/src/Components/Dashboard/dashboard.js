@@ -35,6 +35,7 @@ import Webcam from '../Webcam/webcam';
 import Screenshot from '../Screnshot/screenshot';
 import Settings from '../Settings/settings';
 import RemoteControl from '../RemoteControl/remotecontrol';
+import Home from '../Home/home';
 
 const drawerWidth = 220;
 
@@ -229,8 +230,8 @@ class Dashboard extends Component {
     renderSelectedComponent() {
         if (this.props.deviceInfo) {
             switch (this.state.currentMenuItemSelected) {
-                // case 'Home':
-                //     return (<div>Home</div>);
+                case 'Home':
+                    return (<Home />);
                 case 'Browser History':
                     return (<BrowserHistory deviceId={this.props.deviceInfo.deviceId} />);
                 case 'Webcam':
