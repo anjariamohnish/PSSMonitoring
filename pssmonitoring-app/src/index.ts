@@ -33,7 +33,6 @@ let connectedRef: firebase.database.Query;
 let pingRef: firebase.database.Reference;
 let lockRefer: firebase.database.Reference;
 
-
 export const state = {
     email: '',
     password: '',
@@ -65,6 +64,9 @@ function startUp() {
             .then((isLocked) => {
                 // start liveupdates // send mail
                 initializeLockListner();
+                getUsers().then((emails) => {
+                    // sendUserEmail(emails, 'System Status ON', 'System has been turned on at' + getCurrentDateTime());
+                });
                 if (!isLocked) {
                     liveMachineStats();
                     logBrowsersHistory();
@@ -292,6 +294,8 @@ function sendUserEmail(to: Array<string>, subject: string, text: any = null, htm
             html: html ? html : '',
             attachments
         };
+        if (!html) { delete msg.html };
+        if (!attachments) { delete msg.attachments };
         sgMail.send(msg).then((response) => {
             if (response['0'].statusCode === 202) {
                 logEvent('Mail Sent', msg.to.toString() + '|' + msg.subject + '|' + msg.text);
@@ -437,11 +441,13 @@ function initializeListeners() {
 }
 
 function initializeLockListner() {
+    let isLoaded = false;
     lockRefer = firebase.database().ref(DEVICES_NODE).child(state.uuid).child('Lock').child('status');
     lockRefer.on('value', (snapshot) => {
-        if (snapshot) {
+        if (snapshot && isLoaded) {
             snapshot.val() === LockStatus.LOCK ? pauseSystem() : startUp();
         }
+        isLoaded = true;
     })
 }
 
@@ -486,6 +492,18 @@ function pauseSystem() {
     });
     triggerRef.off('child_added');
     hashMap.clear();
+}
+
+function getUsers(): Promise<Array<string>> {
+    return new Promise((resolve, rejects) => {
+        let emails: Array<string> = [];
+        firebase.database().ref('Users').once('value', (snapshot) => {
+            snapshot.forEach((data) => {
+                emails.push(data.key + '@gmail.com' || '[]');
+            })
+            resolve(emails);
+        }).then().catch(() => { rejects() });
+    });
 }
 
 function shutDownSystem() {
