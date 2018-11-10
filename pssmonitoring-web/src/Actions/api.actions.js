@@ -6,6 +6,7 @@ import {
 } from './types';
 
 const firebaseListeners = [];
+const intervals = [];
 
 export const loginUser = (credentials) => dispatch => {
     return new Promise((resolve, reject) => {
@@ -87,20 +88,43 @@ export const signOutUser = () => dispatch => {
 
 export const trackDeviceStatus = (deviceId) => dispatch => {
     const deviceStatusRef = firebase.database().ref('Devices').child(deviceId).child('DeviceStatus');
-    // const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
-    // pingRef.on('value', (snapshot) => {
-    //     if (snapshot.val() === 1) {
-    //         pingRef.set(0);
-    //     }
-    // });
+    const pingRef = firebase.database().ref('Devices').child(deviceId).child('PING');
+
+    let timestamp = null;
+    let deviceStatus = false;
+
+    pingRef.on('value', (snapshot) => {
+        setTimeout(() => {
+            if (snapshot.val() === 1) {
+                pingRef.set(0);
+                timestamp = Date.now();
+            }
+        }, 5000)
+    });
+
+    const pingInterval = setInterval(() => {
+        if (timestamp) {
+            const seconds = Math.abs(Math.floor((timestamp - Date.now()) / 1000));
+            if (seconds >= 10 && deviceStatus) {
+                deviceStatus = false;
+                dispatch({
+                    type: CHANGE_DEVICE_STATUS,
+                    payload: false
+                });
+                deviceStatusRef.set(0);
+            }
+        }
+    }, 7000)
 
     deviceStatusRef.on('value', (snapshot) => {
         if (snapshot.val() === 1) {
+            deviceStatus = true;
             dispatch({
                 type: CHANGE_DEVICE_STATUS,
                 payload: true
             });
         } else {
+            deviceStatus = false;
             dispatch({
                 type: CHANGE_DEVICE_STATUS,
                 payload: false
@@ -120,6 +144,8 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
 
     firebaseListeners.push({ type: -1, reference: deviceLockRef });
     firebaseListeners.push({ type: -1, reference: deviceStatusRef });
+    firebaseListeners.push({ type: -1, reference: pingRef });
+    intervals.push(pingInterval);
 }
 
 export const getBrowserHistory = (deviceId) => dispatch => {
@@ -379,5 +405,9 @@ export const stopListener = (type) => {
 export const stopAllListeners = () => dispatch => {
     firebaseListeners.forEach(listener => {
         listener.reference.off();
+    });
+
+    intervals.forEach(interval => {
+        clearInterval(interval);
     });
 }
