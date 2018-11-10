@@ -58,7 +58,6 @@ export const loginUser = (credentials) => dispatch => {
                 });
             })
             .catch((err) => {
-                console.log(err)
                 if (err.code === 'auth/user-not-found') {
                     notifyUser('No such Email Exist', notifyType.error);
                 } else {
@@ -151,19 +150,6 @@ export const trackDeviceStatus = (deviceId) => dispatch => {
 export const getBrowserHistory = (deviceId) => dispatch => {
     const browserRef = firebase.database().ref('Devices').child(deviceId).child('BrowserHistory');
     browserRef.on('child_added', (snapshot) => {
-        // console.log(snapshot.toJSON());
-        // const data = new Array();
-        // snapshot.forEach((element) => {
-        //     const data2 = new Array();
-        //     element.forEach((history) => {
-        //         data2.push(history.val());
-        //     });
-        //     data[element.key] = data2;
-        // });
-        // console.log(data)
-
-        // console.log(snapshot.toJSON());
-
         dispatch({
             type: UPDATE_BROWSER_HISTORY,
             payload: snapshot.toJSON()

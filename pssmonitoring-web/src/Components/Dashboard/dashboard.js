@@ -258,7 +258,6 @@ class Dashboard extends Component {
         if (this.props.triggers && this.props.isTriggerLoaded) {
             Object.entries(this.props.triggers).forEach(
                 ([key, data]) => {
-                    // console.log(key, data)
                     switch (data.TriggerStatus) {
                         case TriggerStatus.SUCCESS:
                             notifyUser(createMessage(data.TriggerType, data.TriggerStatus), notifyType.success);

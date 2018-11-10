@@ -65,7 +65,6 @@ export function createLock(pin, lockState, user) {
 }
 
 export function createMessage(triggerType, triggerStatus) {
-    console.log(triggerStatus, triggerType)
     let status = '';
     switch (triggerStatus) {
         case TriggerStatus.SUCCESS:

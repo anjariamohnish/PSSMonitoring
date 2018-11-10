@@ -66,9 +66,7 @@ class Home extends Component {
                     $('#bool1').addClass('animated tada faster')
                 }
             } else {
-                console.log('elese')
                 index = this.state.options.indexOf(this.state.answer);
-                console.log(index)
                 $('#option' + index).css('background-color', 'green');
                 $('#option' + index).addClass('animated tada faster');
             }
