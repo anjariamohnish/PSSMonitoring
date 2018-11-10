@@ -5,7 +5,6 @@ import {
     ADD_WEBCAM_IMAGE, RESET_WEBCAM_TAB_STATE, ADD_SCREENSHOT_IMAGE, SET_LOCK_STATE, ADD_COMMAND, RESET_SCREENSHOT_TAB_STATE,
     RESET_REMOTECTRL_TAB_STATE, ADD_QUIZ_QUESTION, UPDATE_LIVE_STATUS, RESET_HOME_TAB_STATE
 } from '../Actions/types';
-import { LockStatus } from '../Utils/pss.helper';
 
 const initialState = {
     showLoader: false,

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import Lock_Open from '@material-ui/icons/LockOpenOutlined';
+import LockOpen from '@material-ui/icons/LockOpenOutlined';
 import Lock from '@material-ui/icons/LockOutlined'
 import FormControl from '@material-ui/core/FormControl';
 import Visibility from '@material-ui/icons/Visibility';
@@ -84,7 +84,7 @@ class Settings extends Component {
     }
 
     handleSubmit() {
-        if (new String(this.state.pin).length === 6) {
+        if (this.state.pin.toString().length === 6) {
             this.props.toggleLoader(loaderState.ON, loadingHints[Math.floor(Math.random() * loadingHints.length)]);
             this.loaderInterval = setInterval(() => {
                 this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
@@ -169,7 +169,7 @@ class Settings extends Component {
                                         aria-label="ToggleLock"
                                         disabled={!this.state.canUserToggleLock}
                                         onClick={this.handleSubmit.bind(this)}>
-                                        {this.state.isLocked ? <Lock style={{ marginRight: '10px' }} /> : <Lock_Open style={{ marginRight: '10px' }} />}
+                                        {this.state.isLocked ? <Lock style={{ marginRight: '10px' }} /> : <LockOpen style={{ marginRight: '10px' }} />}
                                         {this.state.isLocked ? 'Unlock' : 'Lock'}
                                     </Button>
                                 </div>

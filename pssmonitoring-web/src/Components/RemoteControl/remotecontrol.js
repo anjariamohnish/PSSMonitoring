@@ -82,6 +82,7 @@ class RemoteControl extends Component {
 
             case TriggerType.SHOW_MESSAGE:
                 return 'Send Message';
+            default:
         }
     }
 
@@ -95,6 +96,7 @@ class RemoteControl extends Component {
                 return crossmark;
             case TriggerStatus.STOPPED:
                 return exclamationmark;
+            default:
         }
     }
 

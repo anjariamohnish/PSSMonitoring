@@ -1,5 +1,4 @@
 import { NotificationManager } from 'react-notifications';
-import { func } from 'prop-types';
 
 export const notifyType = Object.freeze({ 'info': 1, 'success': 2, 'warning': 3, 'error': 4 });
 export const loaderState = Object.freeze({ 'ON': true, 'OFF': false });

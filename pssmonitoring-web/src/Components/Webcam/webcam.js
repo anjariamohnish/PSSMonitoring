@@ -127,7 +127,7 @@ class Webcam extends Component {
                 </Dialog>
 
                 <div className="image-container mt-lg-4 mt-0 mb-sm-5 mb-0">
-                    <img src={webcamIcon} onClick={this.handleDialogOpen} className="image" />
+                    <img src={webcamIcon} onClick={this.handleDialogOpen} className="image" alt="imageicon"/>
                 </div>
 
                 <div className="container-fluid">

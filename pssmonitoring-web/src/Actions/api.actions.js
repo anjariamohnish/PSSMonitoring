@@ -345,6 +345,8 @@ export const getCommands = (deviceId, userInfo) => dispatch => {
                         type: ADD_COMMAND,
                         payload: { snapshot: snapshot.val(), key: snapshot.key }
                     })
+                    break;
+                default:
             }
         });
     });
