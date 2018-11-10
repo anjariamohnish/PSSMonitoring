@@ -93,10 +93,10 @@ class Home extends Component {
                 {this.props.liveStatus ?
                     <div className="container-fluid clearfix">
                         <div className="float-left">
-                            <p className="h6 ">Start Time : {this.props.liveStatus.StartTime}</p>
+                            <p className="h6 ">Start Time : {this.props.deviceInfo.isDeviceOnline ? this.props.liveStatus.StartTime : '-'}</p>
                         </div>
                         <div className="float-right">
-                            <p className="h6">Up Time : {this.props.liveStatus.UpTime}</p>
+                            <p className="h6">Up Time : {this.props.deviceInfo.isDeviceOnline ? this.props.liveStatus.UpTime : '-'}</p>
                         </div>
                     </div>
                     : null
@@ -141,7 +141,8 @@ class Home extends Component {
 const mapStateToProps = (state) => {
     return {
         quiz: state.pssReducer.quiz,
-        liveStatus: state.pssReducer.liveStatus
+        liveStatus: state.pssReducer.liveStatus,
+        deviceInfo: state.pssReducer.deviceInfo
     }
 }
 
