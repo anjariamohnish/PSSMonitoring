@@ -13,6 +13,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
+import TextField from '@material-ui/core/TextField';
 
 import checkmark from '../../Assets/Image/checkmark.png';
 import crossmark from '../../Assets/Image/crossmark.png';
@@ -38,7 +39,9 @@ class RemoteControl extends Component {
         this.state = {
             command: '',
             commandText: '',
-            openDialog: false
+            openDialog: false,
+            openTextDialog: false,
+            message: ''
         }
     }
 
@@ -96,7 +99,7 @@ class RemoteControl extends Component {
     }
 
     handleClose = () => {
-        this.setState({ openDialog: false });
+        this.setState({ openDialog: false, openTextDialog: false });
     };
 
     executeCommand = () => {
@@ -104,7 +107,7 @@ class RemoteControl extends Component {
         const loaderInterval = setInterval(() => {
             this.props.changeLoaderText(loadingHints[Math.floor(Math.random() * loadingHints.length)]);
         }, 1500);
-        this.props.addTrigger(this.props.deviceId, createTrigger(this.state.command, this.props.userInfo))
+        this.props.addTrigger(this.props.deviceId, createTrigger(this.state.command, this.props.userInfo, this.state.command === TriggerType.SHOW_MESSAGE ? this.state.message : null))
             .then(() => {
                 notifyUser(`Successfully Sent Command For ${this.state.commandText}`, notifyType.success);
             })
@@ -117,9 +120,24 @@ class RemoteControl extends Component {
                 this.setState({
                     command: '',
                     commandText: '',
-                    openDialog: false
+                    openDialog: false,
+                    openTextDialog: false,
+                    message: ''
                 })
             })
+    }
+
+    handleButtonClick = () => {
+        if (this.state.command === TriggerType.SHOW_MESSAGE) {
+            this.setState({ openTextDialog: this.state.command !== '' ? true : false })
+        } else {
+            this.setState({ openDialog: this.state.command !== '' ? true : false })
+        }
+
+    }
+
+    handleMessageChange = (event) => {
+        this.setState({ message: event.target.value })
     }
 
 
@@ -149,7 +167,7 @@ class RemoteControl extends Component {
                             </FormControl>
                         </div>
                         <div className="float-right mt-4">
-                            <Button size="small" onClick={() => { this.setState({ openDialog: this.state.command !== '' ? true : false }) }} variant="contained">
+                            <Button size="small" onClick={this.handleButtonClick} variant="contained">
                                 Fire Command
                             </Button>
                         </div>
@@ -207,6 +225,38 @@ class RemoteControl extends Component {
                         </Button>
                         <Button onClick={this.executeCommand} color="primary">
                             Continue
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+
+                <Dialog
+                    open={this.state.openTextDialog}
+                    TransitionComponent={Transition}
+                    keepMounted
+                    onClose={this.handleClose}
+                    aria-labelledby="alert-dialog-slide-title"
+                    aria-describedby="alert-dialog-slide-description"
+                >
+                    <DialogTitle id="alert-dialog-slide-title" style={{ textAlign: 'center' }}>
+                        Message
+                    </DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            id="message"
+                            label="Message"
+                            placeholder="Message"
+                            multiline
+                            margin="normal"
+                            onChange={this.handleMessageChange}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.handleClose} color="primary">
+                            Cancel
+                        </Button>
+                        <Button onClick={this.executeCommand} color="primary">
+                            Fire Command
                         </Button>
                     </DialogActions>
                 </Dialog>

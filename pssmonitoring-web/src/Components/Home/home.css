@@ -1,4 +1,4 @@
-.card {
+.quiz-card {
     top: 50%;
     width: 90%;
     left: 50%;
@@ -6,6 +6,6 @@
     position: absolute;
 }
 
-.card-body button {
+.quiz-card .card-body button {
     white-space: normal;
 }

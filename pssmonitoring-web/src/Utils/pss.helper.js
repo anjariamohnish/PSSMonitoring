@@ -57,8 +57,8 @@ export function extractTime(timestamp) {
     return currentTime;
 }
 
-export function createTrigger(triggerType, userInfo) {
-    return { Timestamp: Date.now(), TriggerStatus: TriggerStatus.PENDING, TriggerType: triggerType, User: userInfo };
+export function createTrigger(triggerType, userInfo, Message = null) {
+    return { Timestamp: Date.now(), TriggerStatus: TriggerStatus.PENDING, TriggerType: triggerType, User: userInfo, Message };
 }
 
 export function createLock(pin, lockState, user) {
@@ -66,6 +66,7 @@ export function createLock(pin, lockState, user) {
 }
 
 export function createMessage(triggerType, triggerStatus) {
+    console.log(triggerStatus, triggerType)
     let status = '';
     switch (triggerStatus) {
         case TriggerStatus.SUCCESS:
@@ -91,7 +92,9 @@ export function createMessage(triggerType, triggerStatus) {
         case TriggerType.RESTART:
             return 'Restart Process was ' + status
         case TriggerType.SHOW_MESSAGE:
-            return 'Message was shown' + status
+            return 'Message was shown ' + status
+        case TriggerType.LOCK:
+            return 'Lock Process was ' + status
         default:
     }
 }

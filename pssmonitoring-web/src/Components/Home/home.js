@@ -103,7 +103,7 @@ class Home extends Component {
                 }
                 {
                     this.state.question !== '' ?
-                        <div className="container-fluid card shadow text-center p-0">
+                        <div className="container-fluid card quiz-card shadow text-center p-0">
                             <div className="card-body">
                                 <div className="row mb-3">
                                     <div className="col-12 p-0">
