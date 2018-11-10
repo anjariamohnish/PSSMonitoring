@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { ConnectedRouter as Router, routerMiddleware } from 'react-router-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
-import logger from 'redux-logger';
 import createHistory from 'history/createBrowserHistory';
 
 import App from './App';
@@ -13,7 +12,7 @@ import rootReducer from './Reducers';
 
 
 const initialState = {};
-const middleware = [thunk, logger];
+const middleware = [thunk];
 const history = createHistory();
 const store = createStore(
     rootReducer,
