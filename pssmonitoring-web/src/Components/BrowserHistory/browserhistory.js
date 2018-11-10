@@ -223,13 +223,13 @@ class BrowserHistory extends Component {
                     }}
                     message={<span id="message-id">Copied !</span>}
                 />
-                <div className={"row " + (this.state.hideChip ? 'mb-5' : 'mb-3')}>
+                <div className={"row filter-controls " + (this.state.hideChip ? 'mb-5' : 'mb-3')}>
                     <TextField
                         id="fromDate"
                         label="From"
                         type="date"
                         inputProps={{ min: '2018-10-01', max: `${extractDate().split("-").reverse().join("-")}` }}
-                        className="col-3 filter"
+                        className="col-sm-11 mb-4 mb-sm-4 mb-md-4 ml-0 col-md-3 filter"
                         onChange={this.handleDateChange.bind(this)}
                         value={this.state.fromDate ? this.state.fromDate : ""}
                         InputLabelProps={{
@@ -241,7 +241,7 @@ class BrowserHistory extends Component {
                         label="To"
                         type="date"
                         inputProps={{ min: '2018-10-01', max: `${extractDate().split("-").reverse().join("-")}` }}
-                        className="col-3 filter"
+                        className="col-sm-11 mb-4 mb-sm-4 mb-md-4 ml-0 col-md-3 filter"
                         onChange={this.handleDateChange.bind(this)}
                         value={this.state.toDate ? this.state.toDate : ""}
                         InputLabelProps={{
@@ -268,7 +268,7 @@ class BrowserHistory extends Component {
                 {this.uniqueDates.map((date, index) => {
                     let count = 0;
                     return (
-                        <div id={date} key={index}>
+                        <div id={date} key={index} className="history-card">
                             <div className="accordion" id={'accordion' + index}>
                                 <div className="card shadow mb-4">
                                     <div className="card-header text-center" id={'heading' + index}>

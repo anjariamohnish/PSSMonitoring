@@ -103,9 +103,9 @@ class Home extends Component {
                 }
                 {
                     this.state.question !== '' ?
-                        <div className="container-fluid card quiz-card shadow text-center p-0">
+                        <div className="container-fluid col-md-6 p-md-5 card quiz-card shadow text-center p-0">
                             <div className="card-body">
-                                <div className="row mb-3">
+                                <div className="row mb-3 mb-md-5">
                                     <div className="col-12 p-0">
                                         <p className="h5"> {this.state.question}</p>
                                     </div>
